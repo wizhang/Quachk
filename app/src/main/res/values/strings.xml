@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Quachk</string>
+    <string name="login_text">Log In</string>
+    <string name="signup_text">Sign Up</string>
+    <string name="title_activity_login">Sign in</string>
+
+    <!-- Strings related to Credentials -->
+    <string name="prompt_username">Username</string>
+    <string name="prompt_password">Password</string>
+    <string name="prompt_confirm_password">Confirm Password</string>
+    <string name="title_activity_credentials">CredentialsActivity</string>
+</resources>
