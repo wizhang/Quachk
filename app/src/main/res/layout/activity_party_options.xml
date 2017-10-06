@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="net.quachk.quachk.PartyOptionsActivity">
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/PartyTopOptions">
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:id="@+id/DuckIcon"
+            android:src="@drawable/ic_rubber_duck_silhouette"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/CurrentPlayerName"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toRightOf="@id/DuckIcon"
+            app:layout_constraintTop_toTopOf="parent"
+            android:gravity="center"
+            android:textSize="35sp"
+            android:textColor="@color/PureBlack"
+            android:textStyle="bold"
+            android:fontFamily="casual"
+            android:text="test"/>
+
+    </android.support.constraint.ConstraintLayout>
+
+    <Button
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/PartyTopOptions"
+        app:layout_constraintBottom_toTopOf="@id/JoinPartyOptions"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:paddingTop="30dp"
+        android:paddingBottom="30dp"
+        android:backgroundTint="@color/AlmostRed"
+        android:fontFamily="casual"
+        android:textColor="@color/PureWhite"
+        android:textStyle="bold"
+        android:text="@string/start_party_text"
+        />
+
+    <LinearLayout
+        android:id="@+id/JoinPartyOptions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:layout_marginBottom="40dp">
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.9"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.1"
+            android:backgroundTint="@color/TardisBlue"
+            android:textColor="@color/PureWhite"
+            android:textStyle="bold"
+            android:fontFamily="casual"
+            android:text="@string/join_party_text"/>
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>

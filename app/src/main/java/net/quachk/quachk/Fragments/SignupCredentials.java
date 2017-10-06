@@ -1,6 +1,7 @@
 package net.quachk.quachk.Fragments;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.view.LayoutInflater;
@@ -8,9 +9,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
+import net.quachk.quachk.App;
+import net.quachk.quachk.CredentialsActivity;
+import net.quachk.quachk.Models.Game;
 import net.quachk.quachk.Models.NewPlayer;
 import net.quachk.quachk.Models.Player;
+import net.quachk.quachk.Network.Network;
 import net.quachk.quachk.Network.PlayerApi;
+import net.quachk.quachk.PartyOptionsActivity;
 import net.quachk.quachk.R;
 
 import retrofit2.Retrofit;
@@ -31,13 +37,13 @@ public class SignupCredentials extends Fragment {
         view.findViewById(R.id.SignupButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                NewUser();
+                newUser();
             }
         });
         return view;
     }
 
-    private void NewUser(){
+    private void newUser(){
         //TODO: Turn this into Async Task
 
         EditText user = view.findViewById(R.id.Username);
@@ -56,7 +62,7 @@ public class SignupCredentials extends Fragment {
         np.setPassword(pass.getText().toString());
         np.setConfirmPassword(cpass.getText().toString());
 
-        Retrofit restAdapter = new Retrofit.Builder().baseUrl("http://192.168.1.68/Quachk/")
+        Retrofit restAdapter = new Retrofit.Builder().baseUrl(Network.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create()).build();
         PlayerApi task = restAdapter.create(PlayerApi.class);
 
@@ -72,8 +78,16 @@ public class SignupCredentials extends Fragment {
         }
 
         if(p != null){
+            //Success! We have logged in.
             //TODO: Do something with the player once we get it.
+            App.GAME = new Game();
+            App.GAME.CURRENT_PLAYER = p;
         }
+        openPartyOptions();
+    }
 
+    private void openPartyOptions(){
+        Intent i = new Intent(getActivity(), PartyOptionsActivity.class);
+        startActivity(i);
     }
 }
