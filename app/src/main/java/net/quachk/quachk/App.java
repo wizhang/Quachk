@@ -4,11 +4,15 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 
+import net.quachk.quachk.Models.Game;
+
 /**
  * Created by Elijah on 10/2/2017.
  */
 
 public class App {
+    public static Game GAME;
+
     private static Context CONTEXT;
     private static Activity ACTIVITY;
     private static int LOAD_STATUS = 0;
