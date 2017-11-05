@@ -104,7 +104,7 @@ public class PartyDetailsActivity extends AppCompatActivity {
         List<PublicPlayer> players = null;
 
         try {
-            players = task.fetchPlayersInParty(App.GAME.CURRENT_PARTY.getPartyCode().toString()).execute().body();
+            players = task.fetchPlayersInParty(App.GAME.CURRENT_PARTY.getPartyCode().toString(), App.GAME.CURRENT_PLAYER).execute().body();
         } catch (Exception e) {
             e.printStackTrace();
         }

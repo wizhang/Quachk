@@ -38,6 +38,29 @@ public interface PlayerApi {
     @POST("api/Party/Disband/{code}")
     Call<Boolean> disbandParty(@Path("code")String code, @Body Player player);
 
+    /**
+     * Get's the players in the current player's party.
+     * This returns the information on the other players, including their Location information.
+     * @param code
+     *      The Party's code
+     * @param player
+     *      The current player
+     * @return
+     *      A list of all other players in the party, along with their location information, and tag status.
+     */
     @GET("api/Party/Code/{code}/Players")
-    Call<List<PublicPlayer>> fetchPlayersInParty(@Path("code")String code);
+    Call<List<PublicPlayer>> fetchPlayersInParty(@Path("code")String code, @Body Player player);
+
+    /**
+     * Updates the player's information on the server and sync's with the Party.
+     * Returns the status of the player.
+     * @param code
+     *      The Party's code
+     * @param player
+     *      The player to update (This must be the current player in the game).
+     * @return
+     *      The Status of the player according to the server.
+     */
+    @POST("api/Party/Code/{code}/Status")
+    Call<Player> checkPlayerStatus(@Path("code")String code, @Body Player player);
 }
