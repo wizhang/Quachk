@@ -10,6 +10,7 @@ import android.widget.Button;
 
 import net.quachk.quachk.CredentialsActivity;
 import net.quachk.quachk.R;
+import net.quachk.quachk.Fragments.Intents.FragmentIntents;
 
 
 /**

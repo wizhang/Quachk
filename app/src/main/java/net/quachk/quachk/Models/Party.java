@@ -26,6 +26,9 @@ public class Party {
     @SerializedName("PartyCode")
     @Expose
     private Object partyCode;
+    @SerializedName("PartyLeaderId")
+    @Expose
+    private Integer partyLeaderId;
 
     public Integer getPartyId() {
         return partyId;
@@ -73,6 +76,14 @@ public class Party {
 
     public void setPartyCode(Object partyCode) {
         this.partyCode = partyCode;
+    }
+
+    public Integer getPartyLeaderId() {
+        return partyLeaderId;
+    }
+
+    public void setPartyLeaderId(Integer partyLeaderId) {
+        this.partyLeaderId = partyLeaderId;
     }
 
 }

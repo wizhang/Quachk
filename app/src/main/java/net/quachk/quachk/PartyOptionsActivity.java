@@ -9,7 +9,10 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.TextView;
+
+import com.google.gson.Gson;
 
 import net.quachk.quachk.Models.Game;
 import net.quachk.quachk.Models.Party;
@@ -32,6 +35,15 @@ public class PartyOptionsActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 startParty();
+            }
+        });
+
+        findViewById(R.id.JoinPartyButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String txt = ((EditText)findViewById(R.id.JoinPartyCode)).getText().toString();
+                if(txt != null)
+                    joinParty(txt);
             }
         });
     }
@@ -64,13 +76,33 @@ public class PartyOptionsActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         App.GAME.CURRENT_PARTY = p;
-        Log.w("app", "App Player Name:" + App.GAME.CURRENT_PLAYER.getUsername() + " App Player Hash: " + App.GAME.CURRENT_PLAYER.getSessionHash());
-        //Log.w("app", "App Game:" + (App.GAME == null) + " App Player: " + (App.GAME.CURRENT_PLAYER == null));
         if(App.GAME.CURRENT_PARTY != null)
             openPartyDetails();
     }
 
-    private void openPartyDetails(){
+    public void joinParty(String code){
+        Retrofit restAdapter = new Retrofit.Builder().baseUrl(Network.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create()).build();
+        PlayerApi task = restAdapter.create(PlayerApi.class);
+
+        //Remove next 2 lines once turned into Async Task
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
+        Party p = null;
+
+        try {
+            p = task.joinParty(code, App.GAME.CURRENT_PLAYER).execute().body();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        App.GAME.CURRENT_PARTY = p;
+        if(App.GAME.CURRENT_PARTY != null)
+            openPartyDetails();
+    }
+
+    private void openPartyDetails() {
         Intent i = new Intent(this, PartyDetailsActivity.class);
         startActivity(i);
     }

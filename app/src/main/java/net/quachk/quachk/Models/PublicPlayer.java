@@ -3,7 +3,7 @@ package net.quachk.quachk.Models;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class Player {
+public class PublicPlayer {
 
     @SerializedName("PlayerId")
     @Expose
@@ -20,9 +20,6 @@ public class Player {
     @SerializedName("TaggedTime")
     @Expose
     private Object taggedTime;
-    @SerializedName("SessionHash")
-    @Expose
-    private Object sessionHash;
     @SerializedName("Score")
     @Expose
     private Integer score;
@@ -74,14 +71,6 @@ public class Player {
 
     public void setTaggedTime(Object taggedTime) {
         this.taggedTime = taggedTime;
-    }
-
-    public Object getSessionHash() {
-        return sessionHash;
-    }
-
-    public void setSessionHash(Object sessionHash) {
-        this.sessionHash = sessionHash;
     }
 
     public Integer getScore() {
