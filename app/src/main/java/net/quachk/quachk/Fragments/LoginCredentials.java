@@ -81,6 +81,10 @@ public class LoginCredentials extends Fragment{
             App.GAME.CURRENT_PLAYER = p;
             openPartyOptions();
         }
+        else{
+            TextInputLayout usernameWrapper = (TextInputLayout) view.findViewById(R.id.usernameWrapper);
+            usernameWrapper.setError("This is an invalid username and password combination.");
+        }
 
     }
 
