@@ -1,10 +1,8 @@
 package net.quachk.quachk;
 
 import android.graphics.Color;
-import android.os.Debug;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v4.app.FragmentActivity;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -22,6 +20,7 @@ import java.util.Random;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    private LatLng mCenter;
     private List<LatLng> mPoints;
     private List<LatLng> mRunners;
     private List<LatLng> mTaggers;
@@ -35,9 +34,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
         /** Location of Team Leader */
-        LatLng center = new LatLng(39.999475, -83.013086);
-        generateMapBounds(center);
+        mCenter = new LatLng(39.999475, -83.013086);
+        generateMapBounds(mCenter);
 
         mPoints = new ArrayList<>();
         generatePoints(100, mPoints);
@@ -51,7 +52,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         generatePoints(20, mTaggers);
 
 
-        mapFragment.getMapAsync(this);
     }
 
     private void generatePoints(int numberOfPoints, List<LatLng> points) {
@@ -103,6 +103,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.addMarker(new MarkerOptions().position(point));
         }
 
+        mMap.setLatLngBoundsForCameraTarget(new LatLngBounds(mCenter, mCenter));
         mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mBounds, 0));
     }
 }
