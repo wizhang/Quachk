@@ -7,5 +7,6 @@ package net.quachk.quachk.Models;
 public class Game {
     public Game(){ }
     public Player CURRENT_PLAYER;
+    public Party CURRENT_PARTY;
 
 }

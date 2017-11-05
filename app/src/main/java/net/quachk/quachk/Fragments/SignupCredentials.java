@@ -31,7 +31,7 @@ public class SignupCredentials extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
+        hideLoading();
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.signup_credentials, container, false);
         view.findViewById(R.id.SignupButton).setOnClickListener(new View.OnClickListener() {
@@ -57,6 +57,8 @@ public class SignupCredentials extends Fragment {
         if(cpass == null)
             return;
 
+        showLoading();
+
         NewPlayer np = new NewPlayer();
         np.setUsername(user.getText().toString());
         np.setPassword(pass.getText().toString());
@@ -71,12 +73,13 @@ public class SignupCredentials extends Fragment {
         StrictMode.setThreadPolicy(policy);
 
         Player p = null;
+
         try {
             p = task.fetchNewPlayer(np).execute().body();
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        hideLoading();
         if(p != null){
             //Success! We have logged in.
             //TODO: Do something with the player once we get it.
@@ -84,6 +87,18 @@ public class SignupCredentials extends Fragment {
             App.GAME.CURRENT_PLAYER = p;
         }
         openPartyOptions();
+    }
+
+    private void showLoading(){
+        View v = getActivity().findViewById(R.id.FullscreenLoading);
+        if(v != null)
+            v.setVisibility(View.VISIBLE);
+    }
+
+    private void hideLoading(){
+        View v = getActivity().findViewById(R.id.FullscreenLoading);
+        if(v != null)
+            v.setVisibility(View.GONE);
     }
 
     private void openPartyOptions(){

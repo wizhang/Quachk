@@ -2,6 +2,7 @@ package net.quachk.quachk.Network;
 
 import net.quachk.quachk.Models.LoginPlayer;
 import net.quachk.quachk.Models.NewPlayer;
+import net.quachk.quachk.Models.Party;
 import net.quachk.quachk.Models.Player;
 
 import retrofit2.Call;
@@ -21,4 +22,10 @@ public interface PlayerApi {
 
     @POST("api/Player/New")
     Call<Player> fetchNewPlayer(@Body NewPlayer player);
+
+    @POST("api/Party/New")
+    Call<Party> startParty(@Body Player player);
+
+    @POST("api/Party/Join/{code}")
+    Call<Party> joinParty(@Path("code")String code, @Body Player player);
 }

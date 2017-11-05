@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="PureBlack">#000000</color>
+    <color name="TranslucentBlack">#80000000</color>
     <color name="PureWhite">#FFFFFF</color>
     <color name="AlmostRed">#D21919</color>
     <color name="TardisBlue">#4C4CFF</color>
