@@ -40,6 +40,18 @@ public class LoadingActivity extends AppCompatActivity {
 
         App.setActivity(this);
         Permissions.initialize();
+
+        findViewById(R.id.MapButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                openMap();
+            }
+        });
+    }
+
+    private void openMap() {
+        Intent openMap = new Intent(this, MapsActivity.class);
+        startActivity(openMap);
     }
 
     @Override

@@ -13,4 +13,5 @@
     <!-- Strings related to Parties -->
     <string name="start_party_text">Start A Party</string>
     <string name="join_party_text">Join Party</string>
+    <string name="title_activity_maps">Map</string>
 </resources>
