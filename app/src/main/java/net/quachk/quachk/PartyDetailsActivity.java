@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
@@ -47,6 +48,7 @@ public class PartyDetailsActivity extends AppCompatActivity {
         initListItems();
 
         ((TextView)findViewById(R.id.PartyCode)).setText(App.GAME.CURRENT_PARTY.getPartyCode().toString());
+
     }
 
     @Override
@@ -58,9 +60,20 @@ public class PartyDetailsActivity extends AppCompatActivity {
         if(App.GAME.CURRENT_PARTY.getPartyLeaderId() == App.GAME.CURRENT_PLAYER.getPlayerId()) {
             showFragment(getPartyLeaderOptions());
             getStartGameButton().setVisibility(View.VISIBLE);
+            findViewById(R.id.StartGameButton).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    startGame();
+                }
+            });
         } else
             showFragment(getPlayerPartyOptions());
         getPlayersInParty();
+    }
+
+    private void startGame() {
+        Intent i = new Intent(this, GameScreenActivity.class);
+        startActivity(i);
     }
 
     @Override

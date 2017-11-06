@@ -41,17 +41,17 @@ public class LoadingActivity extends AppCompatActivity {
         App.setActivity(this);
         Permissions.initialize();
 
-        findViewById(R.id.MapButton).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.TestButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                openMap();
+                openTest();
             }
         });
     }
 
-    private void openMap() {
-        Intent openMap = new Intent(this, MapsActivity.class);
-        startActivity(openMap);
+    private void openTest() {
+        Intent test = new Intent(this, GameScreenActivity.class);
+        startActivity(test);
     }
 
     @Override

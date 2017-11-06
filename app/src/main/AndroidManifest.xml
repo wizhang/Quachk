@@ -47,12 +47,13 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".MapsActivity"
+            android:name=".GameScreenActivity"
             android:label="@string/title_activity_maps"></activity>
         <activity android:name=".PartyDetailsActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"/>
             <activity android:name=".PartySettingsActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"/>
+
     </application>
 
 </manifest>
