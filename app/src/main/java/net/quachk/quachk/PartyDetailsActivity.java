@@ -60,7 +60,7 @@ public class PartyDetailsActivity extends AppCompatActivity {
             getStartGameButton().setVisibility(View.VISIBLE);
         } else
             showFragment(getPlayerPartyOptions());
-        GetPlayersInParty();
+        getPlayersInParty();
     }
 
     @Override
@@ -92,7 +92,7 @@ public class PartyDetailsActivity extends AppCompatActivity {
         return getFragmentManager().findFragmentById(R.id.PlayerPartyOptions);
     }
 
-    private void GetPlayersInParty(){
+    private void getPlayersInParty(){
         Retrofit restAdapter = new Retrofit.Builder().baseUrl(Network.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create()).build();
         PlayerApi task = restAdapter.create(PlayerApi.class);

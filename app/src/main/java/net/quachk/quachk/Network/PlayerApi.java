@@ -3,6 +3,8 @@ package net.quachk.quachk.Network;
 import net.quachk.quachk.Models.LoginPlayer;
 import net.quachk.quachk.Models.NewPlayer;
 import net.quachk.quachk.Models.Party;
+import net.quachk.quachk.Models.PartyStatus;
+import net.quachk.quachk.Models.PartyUpdate;
 import net.quachk.quachk.Models.Player;
 import net.quachk.quachk.Models.PublicPlayer;
 
@@ -117,8 +119,20 @@ public interface PlayerApi {
      * @param player
      *      The player to update (This must be the current player in the game).
      * @return
-     *      The Status of the player according to the server.
+     *      The Status of the party according to the server.
      */
     @POST("api/Party/Code/{code}/Status")
-    Call<Player> checkPlayerStatus(@Path("code")String code, @Body Player player);
+    Call<PartyStatus> checkPartyStatus(@Path("code")String code, @Body Player player);
+
+    /**
+     * Update the settings for the party.
+     * Note: only the party leader can update the settings
+     * @param update
+     *      The PartyUpdate object, which includes the list of tagged players, the updated party,
+     *      and the party leader.
+     * @return
+     *      The updated party.
+     */
+    @POST("api/Party/Update")
+    Call<Party> updatePartySettings(@Body PartyUpdate update);
 }

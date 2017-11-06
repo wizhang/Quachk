@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="net.quachk.quachk.PartyOptionsActivity">
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/PartyTopOptions">
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:id="@+id/DuckIcon"
+            android:src="@drawable/ic_rubber_duck_silhouette"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintLeft_toRightOf="@id/DuckIcon"
+            app:layout_constraintTop_toTopOf="parent">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/PartyCodeTitle"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:textColor="@color/PureBlack"
+                android:textStyle="bold"
+                android:fontFamily="casual"
+                android:text="Settings:"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/PartyCode"
+                android:gravity="center"
+                android:textSize="35sp"
+                android:textColor="@color/PureBlack"
+                android:textStyle="bold"
+                android:fontFamily="casual"
+                android:text=""/>
+        </LinearLayout>
+
+    </android.support.constraint.ConstraintLayout>
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/PartyCenterOptions"
+        app:layout_constraintTop_toBottomOf="@id/PartyTopOptions"
+        app:layout_constraintBottom_toTopOf="@+id/PartyBottomOptions"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/TimeLimitText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="@dimen/ButtonFontMed"
+                android:textColor="@color/PureBlack"
+                android:textStyle="bold"
+                android:fontFamily="casual"
+                android:text="Time Limit"/>
+
+            <TextView
+                android:id="@+id/PointsPerSecondText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="@dimen/ButtonFontMed"
+                android:textColor="@color/PureBlack"
+                android:textStyle="bold"
+                android:fontFamily="casual"
+                android:text="Points/Second"/>
+
+            <TextView
+                android:id="@+id/TaggedPlayersText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="@dimen/ButtonFontMed"
+                android:textColor="@color/PureBlack"
+                android:textStyle="bold"
+                android:fontFamily="casual"
+                android:text="Who's it?"/>
+        </LinearLayout>
+
+    </android.support.constraint.ConstraintLayout>
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@id/PartyBottomOptions"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+        <Button
+            android:id="@+id/UpdatePartyButton"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:backgroundTint="@color/TardisBlue"
+            android:fontFamily="casual"
+            android:textSize="@dimen/ButtonFontMed"
+            android:textColor="@color/PureWhite"
+            android:textStyle="bold"
+            android:text="Done"
+            />
+    </android.support.constraint.ConstraintLayout>
+
+</android.support.constraint.ConstraintLayout>

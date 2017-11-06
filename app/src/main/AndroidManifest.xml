@@ -35,6 +35,8 @@
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"/>
         <activity android:name=".PartyDetailsActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"/>
+            <activity android:name=".PartySettingsActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"/>
     </application>
 
 </manifest>

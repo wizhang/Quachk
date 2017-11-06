@@ -20,6 +20,7 @@ import net.quachk.quachk.Models.PublicPlayer;
 import net.quachk.quachk.Network.Network;
 import net.quachk.quachk.Network.PlayerApi;
 import net.quachk.quachk.PartyOptionsActivity;
+import net.quachk.quachk.PartySettingsActivity;
 import net.quachk.quachk.R;
 
 import java.util.List;
@@ -94,7 +95,8 @@ public class PartyLeaderPartyOptions extends Fragment{
     }
 
     private void openPartySettings(){
-
+        Intent i = new Intent(getActivity(), PartySettingsActivity.class);
+        startActivity(i);
     }
 
     private void invitePlayers(){
