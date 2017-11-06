@@ -24,7 +24,7 @@
             app:srcCompat="@drawable/ic_rubber_duck_silhouette" />
 
         <TextView
-            android:id="@+id/textView2"
+            android:id="@+id/Points"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="0dp"
@@ -38,7 +38,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/textView3"
+            android:id="@+id/TimeLimitIndicator"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="0dp"
