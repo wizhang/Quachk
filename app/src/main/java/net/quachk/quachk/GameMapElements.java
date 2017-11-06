@@ -1,9 +1,11 @@
 package net.quachk.quachk;
 
+import android.graphics.Color;
 import android.util.Log;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -18,6 +20,8 @@ import java.util.Random;
  */
 
 public class GameMapElements {
+    private static int CIRCLE_SIZE = 15;
+
     private static boolean initialized = false;
     private static GoogleMap mMap;
     private static LatLng mCenter;
@@ -30,10 +34,10 @@ public class GameMapElements {
     public static void initializeMap(GoogleMap map) {
         mMap = map;
 
-        mCenter = new LatLng(39.999475, -83.013086);
+        mCenter = new LatLng(39.999475, -83.013086); // get party leader's position from server
         generateMapBounds(mCenter);
 
-        generatePoints(100, mPoints);
+        refreshMap();
 
         drawMap();
 
@@ -46,11 +50,19 @@ public class GameMapElements {
 
     public static void refreshMap() {
         Log.d(GameMapElements.class.toString(), "refreshMap called");
-        if (initialized) {
-            mPoints.clear();
-            generatePoints(100, mPoints);
-            drawMap();
-        }
+
+        mPoints.clear();
+        generatePoints(100, mPoints); // get from server
+
+        mRunners.clear();
+        generatePoints(20, mRunners);
+        // get runners locations from server
+
+        mTaggers.clear();
+        generatePoints(20, mTaggers);
+        // get taggers locations from server
+
+        drawMap();
     }
 
     private static void drawMap() {
@@ -58,6 +70,14 @@ public class GameMapElements {
 
         for (LatLng point : mPoints) {
             mMap.addMarker(new MarkerOptions().position(point));
+        }
+
+        for (LatLng runner : mRunners) {
+            mMap.addCircle(new CircleOptions().radius(CIRCLE_SIZE).fillColor(Color.BLUE).strokeWidth(0).center(runner));
+        }
+
+        for (LatLng tagger : mTaggers) {
+            mMap.addCircle(new CircleOptions().radius(CIRCLE_SIZE).fillColor(Color.RED).strokeWidth(0).center(tagger));
         }
 
         mMap.setLatLngBoundsForCameraTarget(new LatLngBounds(mCenter, mCenter));
@@ -75,7 +95,7 @@ public class GameMapElements {
         double minLng = Math.min(northeast.longitude, southwest.longitude);
         double maxLng = Math.max(northeast.longitude, southwest.longitude);
 
-        while (--numberOfPoints >= 0) {
+        while (--numberOfPoints >= 0) { // add points to server
             points.add(new LatLng(
                     minLat + r.nextDouble() * (maxLat - minLat),
                     minLng + r.nextDouble() * (maxLng - minLng)));
