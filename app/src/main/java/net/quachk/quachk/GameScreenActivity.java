@@ -1,9 +1,11 @@
 package net.quachk.quachk;
 
 import android.graphics.Color;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -18,6 +20,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import net.quachk.quachk.Utility.LocationController;
+
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
@@ -25,7 +29,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Random;
 
-public class GameScreenActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class GameScreenActivity extends LocationActivity implements OnMapReadyCallback {
 
     private TextView mTimeLimit;
     private TextView mPoints;
@@ -54,6 +58,12 @@ public class GameScreenActivity extends AppCompatActivity implements OnMapReadyC
                 scan();
             }
         });
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        super.onLocationChanged(location);
+        Log.w("Loc", "Location Updated:"); //Remove once we have verified that location is updating.
     }
 
     private void scan() {

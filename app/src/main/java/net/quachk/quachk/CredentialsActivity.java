@@ -9,14 +9,12 @@ import android.view.WindowManager;
 
 import net.quachk.quachk.Fragments.Intents.FragmentIntents;
 
-public class CredentialsActivity extends AppCompatActivity {
+public class CredentialsActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_credentials);
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         hideLoginCredentials();
         hideSignupCredentials();
         Bundle b = getIntent().getExtras();
@@ -37,31 +35,19 @@ public class CredentialsActivity extends AppCompatActivity {
     }
 
     private void hideLoginCredentials(){
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        Fragment f = getFragmentManager().findFragmentById(R.id.LoginCredentials);
-        ft.hide(f);
-        ft.commit();
+        hideFragment(getFragmentManager().findFragmentById(R.id.LoginCredentials));
     }
 
     private void showLoginCredentials(){
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        Fragment f = getFragmentManager().findFragmentById(R.id.LoginCredentials);
-        ft.show(f);
-        ft.commit();
+        showFragment(getFragmentManager().findFragmentById(R.id.LoginCredentials));
     }
 
     private void hideSignupCredentials(){
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        Fragment f = getFragmentManager().findFragmentById(R.id.SignupCredentials);
-        ft.hide(f);
-        ft.commit();
+        hideFragment(getFragmentManager().findFragmentById(R.id.SignupCredentials));
     }
 
     private void showSignupCredentials(){
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        Fragment f = getFragmentManager().findFragmentById(R.id.SignupCredentials);
-        ft.show(f);
-        ft.commit();
+        showFragment(getFragmentManager().findFragmentById(R.id.SignupCredentials));
     }
 
 }

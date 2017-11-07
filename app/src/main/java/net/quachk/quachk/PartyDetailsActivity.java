@@ -31,16 +31,14 @@ import java.util.List;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class PartyDetailsActivity extends AppCompatActivity {
+public class PartyDetailsActivity extends BaseActivity {
 
     private List<PublicPlayer> LIST_ITEMS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_party_details);
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         this.LIST_ITEMS = new ArrayList<>();
 
         RecyclerView list = findViewById(R.id.ListItems);
@@ -76,22 +74,6 @@ public class PartyDetailsActivity extends AppCompatActivity {
         startActivity(i);
     }
 
-    @Override
-    protected void onResume(){
-        super.onResume();
-    }
-
-    private void hideFragment(Fragment frag){
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        ft.hide(frag);
-        ft.commit();
-    }
-
-    private void showFragment(Fragment frag){
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        ft.show(frag);
-        ft.commit();
-    }
 
     private View getStartGameButton(){
         return findViewById(R.id.StartGameButton);
@@ -122,9 +104,6 @@ public class PartyDetailsActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        Log.w("app", "Party Code:" + App.GAME.CURRENT_PARTY.getPartyCode().toString());
-        Log.w("app", "Got List Items:" + new Gson().toJson(players).toString());
-
         this.LIST_ITEMS = players;
 
         if(this.LIST_ITEMS != null)
@@ -137,7 +116,6 @@ public class PartyDetailsActivity extends AppCompatActivity {
 
     private void initListItems(){
         RecyclerView list = findViewById(R.id.ListItems);
-        Log.w("app", "List Items:" + new Gson().toJson(getListItems()).toString());
         PlayerListAdapter adapter = new PlayerListAdapter(getListItems());
         if(list.getAdapter() == null)
             list.setAdapter(adapter);
