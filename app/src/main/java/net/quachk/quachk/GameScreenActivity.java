@@ -35,7 +35,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
+import net.quachk.quachk.Models.Game;
+import net.quachk.quachk.Models.PublicPlayer;
 import net.quachk.quachk.Utility.LocationController;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 
 public class GameScreenActivity extends LocationActivity implements OnMapReadyCallback {
@@ -107,7 +113,7 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         initializeMap(googleMap);
     }
 
-    public static void initializeMap(GoogleMap map) {
+    public void initializeMap(GoogleMap map) {
         mMap = map;
 
         mCenter = new LatLng(39.999475, -83.013086); // get party leader's position from server
@@ -130,17 +136,49 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
      *
      * Called when user clicks "Scan"
      */
-    public static void refreshMap() {
+    public void refreshMap() {
+
+        try{
+            network().fetchPlayersInParty((String) App.GAME.CURRENT_PARTY.getPartyCode(), App.GAME.CURRENT_PLAYER).enqueue(new Callback<List<PublicPlayer>>() {
+                @Override
+                public void onResponse(Call<List<PublicPlayer>> call, Response<List<PublicPlayer>> response) {
+                    List<PublicPlayer> playerList = null;
+                    playerList = response.body();
+
+                    if(playerList != null){
+                        //Success! We have retrieved other player information
+                        mRunners.clear();
+                        mTaggers.clear();
+                        for (PublicPlayer player: playerList){
+                            Double latitude = (Double) player.getLatitude();
+                            Double longitude = (Double) player.getLongitude();
+                            if (player.getIsTagged()){
+                                mTaggers.add(new LatLng(latitude, longitude));
+                            }
+                            else{
+                                mRunners.add(new LatLng(latitude, longitude));
+                            }
+                        }
+                        App.GAME = new Game();
+                    }
+                    else {
+                        Log.d("GameScreenActivity", "Error retrieving other player locations");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<PublicPlayer>> call, Throwable t) {
+                    hideLoading();
+                    // Give Some Kind Of Error Update (The response should have some kind of error if it was server side).
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
         mPointMarkers.clear();
         generatePoints(100, mPointMarkers); // get from server
-
-        mRunners.clear();
-        generatePoints(20, mRunners);
-        // get runners locations from server
-
-        mTaggers.clear();
-        generatePoints(20, mTaggers);
-        // get taggers locations from server
 
         drawMap();
     }
