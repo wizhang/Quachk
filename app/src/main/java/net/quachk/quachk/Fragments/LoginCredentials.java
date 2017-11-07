@@ -22,6 +22,9 @@ import net.quachk.quachk.Network.PlayerApi;
 import net.quachk.quachk.PartyOptionsActivity;
 import net.quachk.quachk.R;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -29,7 +32,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Created by Elijah on 10/3/2017.
  */
 
-public class LoginCredentials extends Fragment{
+public class LoginCredentials extends BaseFragment{
     View view;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -62,45 +65,30 @@ public class LoginCredentials extends Fragment{
         np.setUsername(user.getText().toString());
         np.setPassword(pass.getText().toString());
 
-        Retrofit restAdapter = new Retrofit.Builder().baseUrl(Network.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create()).build();
-        PlayerApi task = restAdapter.create(PlayerApi.class);
+        network().fetchPlayer(np).enqueue(new Callback<Player>() {
+            @Override
+            public void onResponse(Call<Player> call, Response<Player> response) {
+                updatePlayer(response.body());
+            }
 
-        //Remove next 2 lines once turned into Async Task
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+            @Override
+            public void onFailure(Call<Player> call, Throwable t) {
+                hideLoading();
+                // Give Some Kind Of Error Update (The response should have some kind of error if it was server side).
+            }
+        });
+    }
 
-        Player p = null;
-
-        try {
-            p = task.fetchPlayer(np).execute().body();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if(p != null){
-            //Success! We have logged in.
-            //TODO: Do something with the player once we get it.
-            App.GAME = new Game();
-            App.GAME.CURRENT_PLAYER = p;
-            openPartyOptions();
-        }
-        else{
+    private void updatePlayer(Player p){
+        hideLoading();
+        if(p == null) {
             TextInputLayout usernameWrapper = (TextInputLayout) view.findViewById(R.id.usernameWrapper);
             usernameWrapper.setError("This is an invalid username and password combination.");
+            return;
         }
-        hideLoading();
-    }
-
-    private void showLoading(){
-        View v = getActivity().findViewById(R.id.FullscreenLoading);
-        if(v != null)
-            v.setVisibility(View.VISIBLE);
-    }
-
-    private void hideLoading(){
-        View v = getActivity().findViewById(R.id.FullscreenLoading);
-        if(v != null)
-            v.setVisibility(View.GONE);
+        App.GAME = new Game();
+        App.GAME.CURRENT_PLAYER = p;
+        openPartyOptions();
     }
 
     private void openPartyOptions(){

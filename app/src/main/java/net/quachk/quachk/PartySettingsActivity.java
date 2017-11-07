@@ -26,6 +26,9 @@ import net.quachk.quachk.Network.PlayerApi;
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -51,29 +54,30 @@ public class PartySettingsActivity extends BaseActivity {
     }
 
     private void updateParty(){
-        Retrofit restAdapter = new Retrofit.Builder().baseUrl(Network.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create()).build();
-        PlayerApi task = restAdapter.create(PlayerApi.class);
-
-        //Remove next 2 lines once turned into Async Task
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+        showLoading();
 
         PartyUpdate update = new PartyUpdate();
         update.setPlayer(App.GAME.CURRENT_PLAYER);
         update.setParty(App.GAME.CURRENT_PARTY);
 
-        Party party = null;
+        network().updatePartySettings(update).enqueue(new Callback<Party>() {
+            @Override
+            public void onResponse(Call<Party> call, Response<Party> response) {
+                onPartyUpdate(response.body());
+            }
 
-        try {
-            party = task.updatePartySettings(update).execute().body();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            @Override
+            public void onFailure(Call<Party> call, Throwable t) {
+                //TODO Do something with failure.
+                hideLoading();
+            }
+        });
+    }
 
-        if(party != null)
-            App.GAME.CURRENT_PARTY = party;
-
+    private void onPartyUpdate(Party p){
+        hideLoading();
+        if(p != null)
+            App.GAME.CURRENT_PARTY = p;
         openPartyDetails();
     }
 

@@ -19,6 +19,9 @@ import net.quachk.quachk.Network.PlayerApi;
 import net.quachk.quachk.PartyOptionsActivity;
 import net.quachk.quachk.R;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -26,7 +29,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Created by Elijah on 10/3/2017.
  */
 
-public class SignupCredentials extends Fragment {
+public class SignupCredentials extends BaseFragment {
     View view;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -44,8 +47,6 @@ public class SignupCredentials extends Fragment {
     }
 
     private void newUser(){
-        //TODO: Turn this into Async Task
-
         EditText user = view.findViewById(R.id.Username);
         if(user == null)
             return;
@@ -64,41 +65,27 @@ public class SignupCredentials extends Fragment {
         np.setPassword(pass.getText().toString());
         np.setConfirmPassword(cpass.getText().toString());
 
-        Retrofit restAdapter = new Retrofit.Builder().baseUrl(Network.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create()).build();
-        PlayerApi task = restAdapter.create(PlayerApi.class);
+        network().fetchNewPlayer(np).enqueue(new Callback<Player>() {
+            @Override
+            public void onResponse(Call<Player> call, Response<Player> response) {
+                updatePlayer(response.body());
+            }
 
-        //Remove next 2 lines once turned into Async Task
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+            @Override
+            public void onFailure(Call<Player> call, Throwable t) {
+                // Give Some Kind Of Error Update (The response should have some kind of error if it was server side).
+                hideLoading();
+            }
+        });
+    }
 
-        Player p = null;
-
-        try {
-            p = task.fetchNewPlayer(np).execute().body();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private void updatePlayer(Player p){
         hideLoading();
-        if(p != null){
-            //Success! We have logged in.
-            //TODO: Do something with the player once we get it.
-            App.GAME = new Game();
-            App.GAME.CURRENT_PLAYER = p;
-        }
+        if(p == null)
+            return;
+        App.GAME = new Game();
+        App.GAME.CURRENT_PLAYER = p;
         openPartyOptions();
-    }
-
-    private void showLoading(){
-        View v = getActivity().findViewById(R.id.FullscreenLoading);
-        if(v != null)
-            v.setVisibility(View.VISIBLE);
-    }
-
-    private void hideLoading(){
-        View v = getActivity().findViewById(R.id.FullscreenLoading);
-        if(v != null)
-            v.setVisibility(View.GONE);
     }
 
     private void openPartyOptions(){
