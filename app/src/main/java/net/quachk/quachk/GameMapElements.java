@@ -8,7 +8,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
@@ -20,7 +19,8 @@ import java.util.Random;
  */
 
 public class GameMapElements {
-    private static int CIRCLE_SIZE = 15;
+    private static final int CIRCLE_SIZE = 15;
+    private static final double MAP_RADIUS = 0.005;
 
     private static boolean initialized = false;
     private static GoogleMap mMap;
@@ -48,6 +48,12 @@ public class GameMapElements {
         return initialized;
     }
 
+    /**
+     * Refreshes the locations of the points stored in the map including
+     * points, runners, and taggers
+     *
+     * Called when user clicks "Scan"
+     */
     public static void refreshMap() {
         Log.d(GameMapElements.class.toString(), "refreshMap called");
 
@@ -65,6 +71,9 @@ public class GameMapElements {
         drawMap();
     }
 
+    /**
+     * Draws the map with indicators for points, runners, and taggers
+     */
     private static void drawMap() {
         mMap.clear();
 
@@ -84,6 +93,10 @@ public class GameMapElements {
         mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mBounds, 0));
     }
 
+    /**
+     * Generates a set of random LatLng and stores them in the specified list.
+     * Each point will be contained within bounds specified by the mBounds field
+     */
     private static void generatePoints(int numberOfPoints, List<LatLng> points) {
         Random r = new Random();
 
@@ -102,10 +115,12 @@ public class GameMapElements {
         }
     }
 
+    /**
+     * Generates bounds for the map based on the center (team leader's location)
+     */
     private static void generateMapBounds(LatLng center) {
-        double mapRadius = 0.005;
         mBounds = new LatLngBounds(
-                new LatLng(center.latitude - mapRadius, center.longitude - mapRadius),
-                new LatLng(center.latitude + mapRadius, center.longitude + mapRadius));
+                new LatLng(center.latitude - MAP_RADIUS, center.longitude - MAP_RADIUS),
+                new LatLng(center.latitude + MAP_RADIUS, center.longitude + MAP_RADIUS));
     }
 }

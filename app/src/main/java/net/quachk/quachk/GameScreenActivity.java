@@ -1,9 +1,16 @@
 package net.quachk.quachk;
 
-import android.graphics.Color;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
+import android.os.Debug;
+import android.os.Handler;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -11,28 +18,31 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CircleOptions;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import net.quachk.quachk.Utility.LocationController;
 
-import org.w3c.dom.Text;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Random;
 
 public class GameScreenActivity extends LocationActivity implements OnMapReadyCallback {
 
+    private Handler mHandler = new Handler();
     private TextView mTimeLimit;
     private TextView mPoints;
+    private long endTime;
+    private static final DateFormat formatter = new SimpleDateFormat("mm:ss");
+
+    private Runnable mUpdateTime = new Runnable() {
+        @Override
+        public void run() {
+            mTimeLimit.setText(formatter.format(new Date(endTime - System.currentTimeMillis())));
+            mHandler.postDelayed(mUpdateTime, 1000);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +57,9 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         mapFragment.getMapAsync(this);
 
         mTimeLimit = findViewById(R.id.TimeLimitIndicator);
-        mTimeLimit.setText("15:00");
+        endTime = System.currentTimeMillis() + 15 * 60 * 1000; // get/set this on the server
+        mTimeLimit.setText(formatter.format(new Date(endTime - System.currentTimeMillis())));
+        mHandler.post(mUpdateTime);
 
         mPoints = findViewById(R.id.Points);
         mPoints.setText("1000");
@@ -74,4 +86,5 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
     public void onMapReady(GoogleMap googleMap) {
         GameMapElements.initializeMap(googleMap);
     }
+
 }
