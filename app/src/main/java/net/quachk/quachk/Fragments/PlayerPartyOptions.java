@@ -15,6 +15,9 @@ import net.quachk.quachk.Network.PlayerApi;
 import net.quachk.quachk.PartyOptionsActivity;
 import net.quachk.quachk.R;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -22,7 +25,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Created by Elijah on 10/3/2017.
  */
 
-public class PlayerPartyOptions extends Fragment{
+public class PlayerPartyOptions extends BaseFragment{
 
     View view;
     public PlayerPartyOptions(){}
@@ -50,22 +53,23 @@ public class PlayerPartyOptions extends Fragment{
     }
 
     private void leaveParty(){
-        Retrofit restAdapter = new Retrofit.Builder().baseUrl(Network.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create()).build();
-        PlayerApi task = restAdapter.create(PlayerApi.class);
+        showLoading();
+        network().leaveParty(App.GAME.CURRENT_PARTY.getPartyCode().toString(), App.GAME.CURRENT_PLAYER).enqueue(new Callback<Player>() {
+            @Override
+            public void onResponse(Call<Player> call, Response<Player> response) {
+                onPartyLeave(response.body());
+            }
 
-        //Remove next 2 lines once turned into Async Task
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+            @Override
+            public void onFailure(Call<Player> call, Throwable t) {
+                //TODO Do something with failure.
+                hideLoading();
+            }
+        });
+    }
 
-        Player p = null;
-
-        try {
-            p = task.leaveParty(App.GAME.CURRENT_PARTY.getPartyCode().toString(), App.GAME.CURRENT_PLAYER).execute().body();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+    private void onPartyLeave(Player p){
+        hideLoading();
         if(p != null){
             App.GAME.CURRENT_PLAYER = p;
             openPartyOptions();

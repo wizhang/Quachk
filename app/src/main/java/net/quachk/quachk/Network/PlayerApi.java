@@ -108,7 +108,7 @@ public interface PlayerApi {
      * @return
      *      A list of all other players in the party, along with their location information, and tag status.
      */
-    @GET("api/Party/Code/{code}/Players")
+    @POST("api/Party/Code/{code}/Players")
     Call<List<PublicPlayer>> fetchPlayersInParty(@Path("code")String code, @Body Player player);
 
     /**

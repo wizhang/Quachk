@@ -19,6 +19,9 @@ import net.quachk.quachk.Models.Party;
 import net.quachk.quachk.Network.Network;
 import net.quachk.quachk.Network.PlayerApi;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -58,46 +61,42 @@ public class PartyOptionsActivity extends BaseActivity {
     }
 
     public void startParty(){
-        Retrofit restAdapter = new Retrofit.Builder().baseUrl(Network.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create()).build();
-        PlayerApi task = restAdapter.create(PlayerApi.class);
+        showLoading();
+        network().startParty(App.GAME.CURRENT_PLAYER).enqueue(new Callback<Party>() {
+            @Override
+            public void onResponse(Call<Party> call, Response<Party> response) {
+                onPartyStart(response.body());
+            }
 
-        //Remove next 2 lines once turned into Async Task
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+            @Override
+            public void onFailure(Call<Party> call, Throwable t) {
+                //TODO Do something with failure.
+                hideLoading();
+            }
+        });
+    }
 
-        Party p = null;
-
-        try {
-            p = task.startParty(App.GAME.CURRENT_PLAYER).execute().body();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private void onPartyStart(Party p){
+        hideLoading();
         App.GAME.CURRENT_PARTY = p;
         if(App.GAME.CURRENT_PARTY != null)
             openPartyDetails();
     }
 
     public void joinParty(String code){
-        Retrofit restAdapter = new Retrofit.Builder().baseUrl(Network.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create()).build();
-        PlayerApi task = restAdapter.create(PlayerApi.class);
+        showLoading();
+        network().joinParty(code, App.GAME.CURRENT_PLAYER).enqueue(new Callback<Party>() {
+            @Override
+            public void onResponse(Call<Party> call, Response<Party> response) {
+                onPartyStart(response.body());
+            }
 
-        //Remove next 2 lines once turned into Async Task
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-
-        Party p = null;
-
-        try {
-            p = task.joinParty(code, App.GAME.CURRENT_PLAYER).execute().body();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        App.GAME.CURRENT_PARTY = p;
-        if(App.GAME.CURRENT_PARTY != null)
-            openPartyDetails();
+            @Override
+            public void onFailure(Call<Party> call, Throwable t) {
+                //TODO Do something with failure.
+                hideLoading();
+            }
+        });
     }
 
     private void openPartyDetails() {

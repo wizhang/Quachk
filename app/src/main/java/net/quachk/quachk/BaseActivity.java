@@ -11,13 +11,20 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import net.quachk.quachk.Network.Network;
+import net.quachk.quachk.Network.PlayerApi;
+
 import java.util.ArrayList;
+
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Created by Elijah on 11/6/2017.
  */
 
 public class BaseActivity extends AppCompatActivity {
+
     public BaseActivity(){}
 
     @Override
@@ -48,6 +55,11 @@ public class BaseActivity extends AppCompatActivity {
         Permissions.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
+    public PlayerApi network(){
+        return new Retrofit.Builder().baseUrl(Network.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create()).build().create(PlayerApi.class);
+    }
+
     public void hideFragment(Fragment frag){
         FragmentTransaction ft = getFragmentManager().beginTransaction();
         ft.hide(frag);
@@ -68,6 +80,18 @@ public class BaseActivity extends AppCompatActivity {
     public void showView(View v){
         if(v != null)
             v.setVisibility(View.VISIBLE);
+    }
+
+    public void showLoading(){
+        View v = findViewById(R.id.FullscreenLoading);
+        if(v != null)
+            v.setVisibility(View.VISIBLE);
+    }
+
+    public void hideLoading(){
+        View v = findViewById(R.id.FullscreenLoading);
+        if(v != null)
+            v.setVisibility(View.GONE);
     }
 
 }

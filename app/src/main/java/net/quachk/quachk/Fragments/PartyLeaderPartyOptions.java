@@ -25,6 +25,9 @@ import net.quachk.quachk.R;
 
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -32,7 +35,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Created by Elijah on 10/3/2017.
  */
 
-public class PartyLeaderPartyOptions extends Fragment{
+public class PartyLeaderPartyOptions extends BaseFragment{
 
     View view;
     public PartyLeaderPartyOptions(){}
@@ -66,25 +69,26 @@ public class PartyLeaderPartyOptions extends Fragment{
     }
 
     private void disbandParty(){
-        Retrofit restAdapter = new Retrofit.Builder().baseUrl(Network.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create()).build();
-        PlayerApi task = restAdapter.create(PlayerApi.class);
+        showLoading();
+        network().disbandParty(App.GAME.CURRENT_PARTY.getPartyCode().toString(), App.GAME.CURRENT_PLAYER).enqueue(new Callback<Boolean>() {
+            @Override
+            public void onResponse(Call<Boolean> call, Response<Boolean> response) {
+                onDisband(response.body());
+            }
 
-        //Remove next 2 lines once turned into Async Task
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+            @Override
+            public void onFailure(Call<Boolean> call, Throwable t) {
+                //TODO Do something with failure.
+                hideLoading();
+            }
+        });
+    }
 
-        Boolean success = false;
-
-        try {
-            success = task.disbandParty(App.GAME.CURRENT_PARTY.getPartyCode().toString(), App.GAME.CURRENT_PLAYER).execute().body();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private void onDisband(Boolean success){
+        hideLoading();
         if(success != null && success) {
             App.GAME.CURRENT_PARTY = null;
             App.GAME.CURRENT_PLAYER.setPartyId(null);
-
             openPartyOptions();
         }
     }

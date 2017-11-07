@@ -28,6 +28,9 @@ import net.quachk.quachk.Network.PlayerApi;
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -88,24 +91,24 @@ public class PartyDetailsActivity extends BaseActivity {
     }
 
     private void getPlayersInParty(){
-        Retrofit restAdapter = new Retrofit.Builder().baseUrl(Network.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create()).build();
-        PlayerApi task = restAdapter.create(PlayerApi.class);
+        showLoading();
+        network().fetchPlayersInParty(App.GAME.CURRENT_PARTY.getPartyCode().toString(), App.GAME.CURRENT_PLAYER).enqueue(new Callback<List<PublicPlayer>>() {
+            @Override
+            public void onResponse(Call<List<PublicPlayer>> call, Response<List<PublicPlayer>> response) {
+                updatePlayersInParty(response.body());
+            }
 
-        //Remove next 2 lines once turned into Async Task
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+            @Override
+            public void onFailure(Call<List<PublicPlayer>> call, Throwable t) {
+                //TODO Do something with the error.
+                hideLoading();
+            }
+        });
+    }
 
-        List<PublicPlayer> players = null;
-
-        try {
-            players = task.fetchPlayersInParty(App.GAME.CURRENT_PARTY.getPartyCode().toString(), App.GAME.CURRENT_PLAYER).execute().body();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+    private void updatePlayersInParty(List<PublicPlayer> players){
+        hideLoading();
         this.LIST_ITEMS = players;
-
         if(this.LIST_ITEMS != null)
             initListItems();
     }
