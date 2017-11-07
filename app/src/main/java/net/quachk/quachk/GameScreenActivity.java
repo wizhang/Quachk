@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Debug;
 import android.os.Handler;
@@ -24,8 +25,10 @@ import com.google.android.gms.maps.SupportMapFragment;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import net.quachk.quachk.Utility.LocationController;
 
-public class GameScreenActivity extends AppCompatActivity implements OnMapReadyCallback {
+
+public class GameScreenActivity extends LocationActivity implements OnMapReadyCallback {
 
     private Handler mHandler = new Handler();
     private TextView mTimeLimit;
@@ -67,6 +70,12 @@ public class GameScreenActivity extends AppCompatActivity implements OnMapReadyC
                 scan();
             }
         });
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        super.onLocationChanged(location);
+        Log.w("Loc", "Location Updated:"); //Remove once we have verified that location is updating.
     }
 
     private void scan() {

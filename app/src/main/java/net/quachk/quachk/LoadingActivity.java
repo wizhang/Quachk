@@ -10,7 +10,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
-public class LoadingActivity extends AppCompatActivity {
+public class LoadingActivity extends BaseActivity {
 
     Handler loadingHandler = new Handler();
     Runnable loadingRunnable = new Runnable() {
@@ -32,9 +32,7 @@ public class LoadingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_loading);
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         hideLoginOptions();
 
@@ -66,31 +64,19 @@ public class LoadingActivity extends AppCompatActivity {
         loadingHandler.removeCallbacks(loadingRunnable);
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
-        Permissions.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-
     private void hideProgress(){
-        findViewById(R.id.LoadingProgress).setVisibility(View.GONE);
+        hideView(findViewById(R.id.LoadingProgress));
     }
 
     private void showProgress(){
-        findViewById(R.id.LoadingProgress).setVisibility(View.VISIBLE);
+        showView(findViewById(R.id.LoadingProgress));
     }
 
     private void hideLoginOptions(){
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        Fragment f = getFragmentManager().findFragmentById(R.id.LoginOptions);
-        ft.hide(f);
-        ft.commit();
+        hideFragment(getFragmentManager().findFragmentById(R.id.LoginOptions));
     }
 
     private void showLoginOptions(){
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        Fragment f = getFragmentManager().findFragmentById(R.id.LoginOptions);
-        ft.show(f);
-        ft.commit();
+        showFragment(getFragmentManager().findFragmentById(R.id.LoginOptions));
     }
 }

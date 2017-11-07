@@ -29,14 +29,12 @@ import java.util.List;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class PartySettingsActivity extends AppCompatActivity {
+public class PartySettingsActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_party_settings);
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         getUpdatePartyButton().setOnClickListener(new View.OnClickListener() {
             @Override
@@ -46,16 +44,6 @@ public class PartySettingsActivity extends AppCompatActivity {
         });
 
         ((TextView)findViewById(R.id.PartyCode)).setText(App.GAME.CURRENT_PARTY.getPartyCode().toString());
-    }
-
-    @Override
-    protected void onStart(){
-        super.onStart();
-    }
-
-    @Override
-    protected void onResume(){
-        super.onResume();
     }
 
     private View getUpdatePartyButton(){
