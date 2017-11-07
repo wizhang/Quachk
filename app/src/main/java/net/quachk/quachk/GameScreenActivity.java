@@ -3,6 +3,7 @@ package net.quachk.quachk;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -18,13 +19,22 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Random;
+
 import net.quachk.quachk.Utility.LocationController;
 
 
@@ -35,6 +45,16 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
     private TextView mPoints;
     private long endTime;
     private static final DateFormat formatter = new SimpleDateFormat("mm:ss");
+    private static final int CIRCLE_SIZE = 15;
+    private static final double MAP_RADIUS = 0.005;
+
+    private static boolean initialized = false;
+    private static GoogleMap mMap;
+    private static LatLng mCenter;
+    private static List<LatLng> mRunners = new ArrayList<>();
+    private static List<LatLng> mTaggers = new ArrayList<>();
+    private static List<LatLng> mPointMarkers = new ArrayList<>();
+    private static LatLngBounds mBounds;
 
     private Runnable mUpdateTime = new Runnable() {
         @Override
@@ -79,12 +99,103 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
     }
 
     private void scan() {
-        GameMapElements.refreshMap();
+        refreshMap();
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        GameMapElements.initializeMap(googleMap);
+        initializeMap(googleMap);
+    }
+
+    public static void initializeMap(GoogleMap map) {
+        mMap = map;
+
+        mCenter = new LatLng(39.999475, -83.013086); // get party leader's position from server
+        generateMapBounds(mCenter);
+
+        refreshMap();
+
+        drawMap();
+
+        initialized = true;
+    }
+
+    public static boolean isInitialized() {
+        return initialized;
+    }
+
+    /**
+     * Refreshes the locations of the points stored in the map including
+     * points, runners, and taggers
+     *
+     * Called when user clicks "Scan"
+     */
+    public static void refreshMap() {
+        mPointMarkers.clear();
+        generatePoints(100, mPointMarkers); // get from server
+
+        mRunners.clear();
+        generatePoints(20, mRunners);
+        // get runners locations from server
+
+        mTaggers.clear();
+        generatePoints(20, mTaggers);
+        // get taggers locations from server
+
+        drawMap();
+    }
+
+    /**
+     * Draws the map with indicators for points, runners, and taggers
+     */
+    private static void drawMap() {
+        mMap.clear();
+
+        for (LatLng point : mPointMarkers) {
+            mMap.addMarker(new MarkerOptions().position(point));
+        }
+
+        for (LatLng runner : mRunners) {
+            mMap.addCircle(new CircleOptions().radius(CIRCLE_SIZE).fillColor(Color.BLUE).strokeWidth(0).center(runner));
+        }
+
+        for (LatLng tagger : mTaggers) {
+            mMap.addCircle(new CircleOptions().radius(CIRCLE_SIZE).fillColor(Color.RED).strokeWidth(0).center(tagger));
+        }
+
+        mMap.setLatLngBoundsForCameraTarget(new LatLngBounds(mCenter, mCenter));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mBounds, 0));
+    }
+
+    /**
+     * Generates a set of random LatLng and stores them in the specified list.
+     * Each point will be contained within bounds specified by the mBounds field
+     */
+    private static void generatePoints(int numberOfPoints, List<LatLng> points) {
+        Random r = new Random();
+
+        LatLng northeast = mBounds.northeast;
+        LatLng southwest = mBounds.southwest;
+
+        double minLat = Math.min(northeast.latitude, southwest.latitude);
+        double maxLat = Math.max(northeast.latitude, southwest.latitude);
+        double minLng = Math.min(northeast.longitude, southwest.longitude);
+        double maxLng = Math.max(northeast.longitude, southwest.longitude);
+
+        while (--numberOfPoints >= 0) { // add points to server
+            points.add(new LatLng(
+                    minLat + r.nextDouble() * (maxLat - minLat),
+                    minLng + r.nextDouble() * (maxLng - minLng)));
+        }
+    }
+
+    /**
+     * Generates bounds for the map based on the center (team leader's location)
+     */
+    private static void generateMapBounds(LatLng center) {
+        mBounds = new LatLngBounds(
+                new LatLng(center.latitude - MAP_RADIUS, center.longitude - MAP_RADIUS),
+                new LatLng(center.latitude + MAP_RADIUS, center.longitude + MAP_RADIUS));
     }
 
 }
