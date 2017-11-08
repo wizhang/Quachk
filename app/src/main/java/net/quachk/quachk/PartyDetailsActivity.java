@@ -27,6 +27,9 @@ import net.quachk.quachk.Network.PlayerApi;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -37,6 +40,21 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class PartyDetailsActivity extends BaseActivity {
 
     private List<PublicPlayer> LIST_ITEMS;
+    private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+
+    private Runnable updatePlayersTask = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                getPlayersInParty();
+                Log.d("PartyDetailsActivity", "Updating party members");
+            }
+            catch (Exception e){
+                Log.d("PartyDetailsActivity", "Failed updating party members");
+            }
+        }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,10 +87,12 @@ public class PartyDetailsActivity extends BaseActivity {
             });
         } else
             showFragment(getPlayerPartyOptions());
-        getPlayersInParty();
+        Log.d("PartyDetailsActivity", "Executing update players task");
+        executor.scheduleAtFixedRate(updatePlayersTask, 0, 3, TimeUnit.SECONDS);
     }
 
     private void startGame() {
+        executor.shutdownNow();
         Intent i = new Intent(this, GameScreenActivity.class);
         startActivity(i);
     }
