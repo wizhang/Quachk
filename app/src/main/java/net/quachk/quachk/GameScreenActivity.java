@@ -97,10 +97,39 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
             }
         });
     }
-
+    
     @Override
     public void onLocationChanged(Location location) {
         super.onLocationChanged(location);
+        
+        //When user has changed location, update it on webserver
+        App.GAME.CURRENT_PLAYER.setLatitude(location.getLatitude());
+        App.GAME.CURRENT_PLAYER.setLongitude(location.getLongitude());
+        try{
+            network().checkPartyStatus((String) App.GAME.CURRENT_PARTY.getPartyCode(), App.GAME.CURRENT_PLAYER).enqueue(new Callback<PartyStatus>() {
+                @Override
+                public void onResponse(Call<PartyStatus> call, Response<PartyStatus> response) {
+                    PartyStatus partyStatus = null;
+                    partyStatus = response.body();
+ 
+                    if(partyStatus != null){
+                        //Success! We have updated player information
+                    }
+                    else {
+                        Log.d("GameScreenActivity", "Error updating current player location");
+                    }
+                }
+ 
+                @Override
+                public void onFailure(Call<PartyStatus> call, Throwable t) {
+                    hideLoading();
+                    // Give Some Kind Of Error Update (The response should have some kind of error if it was server side).
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+ 
         Log.w("Loc", "Location Updated:"); //Remove once we have verified that location is updating.
     }
 
