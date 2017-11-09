@@ -113,6 +113,7 @@ public class PartyDetailsActivity extends LocationActivity {
     }
 
 
+
     @Override
     protected void onStart(){
         super.onStart();
@@ -121,15 +122,16 @@ public class PartyDetailsActivity extends LocationActivity {
         getStartGameButton().setVisibility(View.GONE);
         if(App.GAME.CURRENT_PARTY.getPartyLeaderId() == App.GAME.CURRENT_PLAYER.getPlayerId()) {
             showFragment(getPartyLeaderOptions());
-            getStartGameButton().setVisibility(View.VISIBLE);
-            findViewById(R.id.StartGameButton).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    startGame();
-                }
-            });
-        } else
+        } else {
             showFragment(getPlayerPartyOptions());
+        }
+        getStartGameButton().setVisibility(View.VISIBLE);
+        findViewById(R.id.StartGameButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startGame();
+            }
+        });
         Log.d("PartyDetailsActivity", "Executing update players task");
         executor.scheduleAtFixedRate(updatePlayersTask, 0, 3, TimeUnit.SECONDS);
     }

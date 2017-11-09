@@ -48,7 +48,7 @@ public class LoadingActivity extends BaseActivity {
     }
 
     private void openTest() {
-        Intent test = new Intent(this, GameScreenActivity.class);
+        Intent test = new Intent(this, EndScreenActivity.class);
         startActivity(test);
     }
 
