@@ -20,7 +20,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import net.quachk.quachk.Models.Game;
 import net.quachk.quachk.Models.Party;
 import net.quachk.quachk.Models.PartyStatus;
 import net.quachk.quachk.Models.PartyUpdate;
@@ -44,7 +43,7 @@ import retrofit2.Response;
 
 public class GameScreenActivity extends LocationActivity implements OnMapReadyCallback {
 
-    private static ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
+    private static ScheduledExecutorService mExecutorService = Executors.newScheduledThreadPool(1);
     private static TextView mTimeLimit;
     private static TextView mPointsTextView;
     private static long endTime;
@@ -53,17 +52,47 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
 
     private static GoogleMap mMap;
     private static LatLng mCenter;
-    private static List<LatLng> mRunners = new ArrayList<>();
+    private static List<PublicPlayer> mRunners = new ArrayList<>();
     private static List<LatLng> mTaggers = new ArrayList<>();
     private static List<LatLng> mPointMarkers = new ArrayList<>();
     private static LatLngBounds mBounds;
 
-    private Runnable mUpdateTime = new Runnable() {
+    private static boolean isTagged;
+
+    private Runnable update = new Runnable() {
         @Override
         public void run() {
-            mTimeLimit.setText(formatter.format(new Date(endTime - System.currentTimeMillis())));
+            Log.d("update", "Runnable called");
+            if (App.GAME.CURRENT_PARTY.getPointSecond() != null) {
+                mPoints += App.GAME.CURRENT_PARTY.getPointSecond();
+            } else {
+                mPoints += GameScreenConstants.DEFAULT_POINTS_PER_SECOND;
+            }
+
+            if (App.GAME.CURRENT_PLAYER.getIsTagged() != null &&
+                    isTagged != App.GAME.CURRENT_PLAYER.getIsTagged()) {
+                // player got tagged
+                Toast message = Toast.makeText(GameScreenActivity.this,
+                        "You got tagged!", Toast.LENGTH_SHORT);
+                message.setGravity(Gravity.TOP, 0, 0);
+                message.show();
+                isTagged = true;
+            }
+            updateTextViews();
+            Log.d("update", "Runnable finished");
         }
     };
+
+    /** Update TextViews on the main thread */
+    private void updateTextViews() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mTimeLimit.setText(formatter.format(new Date(endTime - System.currentTimeMillis())));
+                updatePoints();
+            }
+        });
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,8 +114,11 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
                 scan();
             }
         });
-
-        generatePoints(100, mPointMarkers); // The bonus points scattered around the map
+        if (App.GAME.CURRENT_PLAYER.getIsTagged() != null) {
+            isTagged = App.GAME.CURRENT_PLAYER.getIsTagged();
+        } else {
+            isTagged = false;
+        }
     }
 
     @Override
@@ -102,7 +134,6 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         endTime = (long) App.GAME.CURRENT_PARTY.getEndTime();
 
         mTimeLimit.setText(formatter.format(new Date(endTime - System.currentTimeMillis())));
-        mExecutorService.scheduleAtFixedRate(mUpdateTime, 0, 1, TimeUnit.SECONDS);
 
         if (App.GAME.CURRENT_PLAYER.getScore() == null) {
             mPoints = App.GAME.CURRENT_PLAYER.getScore();
@@ -111,12 +142,13 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         }
         mPointsTextView = findViewById(R.id.Points);
         updatePoints();
+        mExecutorService.scheduleAtFixedRate(update, 0, 1, TimeUnit.SECONDS);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mExecutorService.shutdown();
+        mExecutorService.shutdownNow();
         finish();
     }
 
@@ -179,9 +211,14 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         LatLngBounds scanBounds = generateBounds(currentLocation, GameScreenConstants.SCAN_RADIUS);
 
         // check to see if the player has enough points
-        if (mPoints > GameScreenConstants.SCAN_COST) {
+        if (mPoints >= GameScreenConstants.SCAN_COST) {
             checkForPoints(scanBounds);
+            if (isTagged) {
+                refreshMap(); // update runners/taggers lists
+                checkForRunners(scanBounds);
+            }
             refreshMap();
+            drawMap();
             mPoints -= GameScreenConstants.SCAN_COST;
             updatePoints();
         } else {
@@ -189,6 +226,17 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
                     "You do not have enough points!", Toast.LENGTH_SHORT);
             message.setGravity(Gravity.TOP, 0, 0);
             message.show();
+        }
+    }
+
+    private void checkForRunners(LatLngBounds scanBounds) {
+        for (int i = mRunners.size() - 1; i >= 0; i--) {
+            PublicPlayer runner = mRunners.get(i);
+            LatLng runnerPosition = new LatLng((double)runner.getLatitude(),
+                    (double)runner.getLongitude());
+            if (scanBounds.contains(runnerPosition)) {
+                // tag the runner and update the server
+            }
         }
     }
 
@@ -218,13 +266,14 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
 
         mCenter = new LatLng(39.999475, -83.013086); // get party leader's position from server
         mBounds = generateBounds(mCenter, GameScreenConstants.MAP_RADIUS);
+        generatePoints(100, mPointMarkers); // The bonus points scattered around the map
 
         refreshMap();
+        drawMap();
     }
 
     /**
-     * Refreshes the locations of the points stored in the map including
-     * points, runners, and taggers
+     * Refreshes the locations of the runners and taggers
      *
      * Called when user clicks "Scan"
      */
@@ -253,11 +302,14 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
                             else {
                                 if (player.getIsTagged()) {
                                     mTaggers.add(new LatLng(latitude, longitude));
+                                    Log.d("Add Players", player.getUsername() + " was added to tagged players");
                                 } else {
-                                    mRunners.add(new LatLng(latitude, longitude));
+                                    mRunners.add(player);
+                                    Log.d("Add Players", player.getUsername() + " was added to not tagged players");
                                 }
                             }
                         }
+                        Log.d("Add Players", "finished updating players");
                     }
                     else {
                         Log.d("GameScreenActivity", "Error retrieving other player locations");
@@ -273,8 +325,6 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        drawMap();
     }
 
     /**
@@ -287,9 +337,11 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
             mMap.addMarker(new MarkerOptions().position(point));
         }
 
-        for (LatLng runner : mRunners) {
+        for (PublicPlayer runner : mRunners) {
+            LatLng runnerPostion = new LatLng((double)runner.getLatitude(),
+                    (double)runner.getLongitude());
             mMap.addCircle(new CircleOptions().radius(GameScreenConstants.CIRCLE_SIZE)
-                    .fillColor(Color.BLUE).strokeWidth(0).center(runner));
+                    .fillColor(Color.BLUE).strokeWidth(0).center(runnerPostion));
         }
 
         for (LatLng tagger : mTaggers) {
@@ -297,7 +349,13 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
                     .fillColor(Color.RED).strokeWidth(0).center(tagger));
         }
 
-        mMap.setLatLngBoundsForCameraTarget(new LatLngBounds(mCenter, mCenter));
+        // draw current location
+        LatLng currentLocation = new LatLng((double)App.GAME.CURRENT_PLAYER.getLatitude(),
+                (double)App.GAME.CURRENT_PLAYER.getLongitude());
+        mMap.addCircle(new CircleOptions().center(currentLocation).fillColor(Color.BLACK)
+                .strokeColor(Color.BLUE).radius(30.0f).strokeWidth(10.0f));
+
+        mMap.setLatLngBoundsForCameraTarget(new LatLngBounds(currentLocation, currentLocation));
         mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mBounds, 0));
     }
 

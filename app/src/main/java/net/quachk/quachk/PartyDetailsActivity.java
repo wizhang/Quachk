@@ -98,6 +98,7 @@ public class PartyDetailsActivity extends LocationActivity {
     protected void onPause(){
         super.onPause();
         executor.shutdownNow();
+        Log.d("PartyDetails", "shut down executor");
     }
 
     @Override
@@ -153,14 +154,25 @@ public class PartyDetailsActivity extends LocationActivity {
             showFragment(getPlayerPartyOptions());
         Log.d("PartyDetailsActivity", "Executing update players task");
         executor.scheduleAtFixedRate(updatePlayersTask, 0, 3, TimeUnit.SECONDS);
+    }
 
+    private void startGame() {
+        setPlayerInitialValues();
+        Intent i = new Intent(this, GameScreenActivity.class);
+        startActivity(i);
+        finish(); // do not allow the player to return to the party screen after a game has started
+    }
 
+    private void setPlayerInitialValues() {
         Location currentLocation = getLocationController().getLastBestLocation();
         App.GAME.CURRENT_PLAYER.setLatitude(currentLocation.getLatitude());
         App.GAME.CURRENT_PLAYER.setLongitude(currentLocation.getLongitude());
         Log.d("PartyDetailsActivity", "Set player's latitude to " + App.GAME.CURRENT_PLAYER.getLatitude());
         Log.d("PartyDetailsActivity", "Set player's longitude to " + App.GAME.CURRENT_PLAYER.getLongitude());
 
+        if (App.GAME.CURRENT_PLAYER.getIsTagged() == null) {
+            App.GAME.CURRENT_PLAYER.setIsTagged(false);
+        }
 
         network().checkPartyStatus((String) App.GAME.CURRENT_PARTY.getPartyCode(), App.GAME.CURRENT_PLAYER).enqueue(new Callback<PartyStatus>() {
             @Override
@@ -173,12 +185,6 @@ public class PartyDetailsActivity extends LocationActivity {
                 Log.d("update location", "fail");
             }
         });
-    }
-
-    private void startGame() {
-        Intent i = new Intent(this, GameScreenActivity.class);
-        startActivity(i);
-        finish(); // do not allow the player to return to the party screen after a game has started
     }
 
 
