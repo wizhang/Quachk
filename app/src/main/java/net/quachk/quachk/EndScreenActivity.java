@@ -2,6 +2,8 @@ package net.quachk.quachk;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.Pair;
@@ -12,24 +14,34 @@ import android.widget.TextView;
 import com.google.android.gms.maps.model.LatLng;
 
 import net.quachk.quachk.Adapters.PlayerListAdapter;
+import net.quachk.quachk.Adapters.ScoreListAdapter;
 import net.quachk.quachk.Models.Party;
 import net.quachk.quachk.Models.Player;
 import net.quachk.quachk.Models.PublicPlayer;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class EndScreenActivity extends BaseActivity {
+public class EndScreenActivity extends LocationActivity {
     private List<PublicPlayer> LIST_ITEMS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_end_screen);
+        this.LIST_ITEMS = new ArrayList<>();
+
+        RecyclerView list = findViewById(R.id.ListItems);
+        list.setLayoutManager(new LinearLayoutManager(this));
+
         updateScores();
         findViewById(R.id.ContinueButton).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -37,7 +49,6 @@ public class EndScreenActivity extends BaseActivity {
                 openPartyOptions();
             }
         });
-
     }
 
     private void openPartyOptions(){
@@ -53,22 +64,23 @@ public class EndScreenActivity extends BaseActivity {
 
 
     public void updateScores(){
-        Player currentPlayer = App.GAME.CURRENT_PLAYER;
-        Party currentParty = App.GAME.CURRENT_PARTY;
         try{
             network().fetchPlayersInParty((String) App.GAME.CURRENT_PARTY.getPartyCode(), App.GAME.CURRENT_PLAYER).enqueue(new Callback<List<PublicPlayer>>() {
                 @Override
                 public void onResponse(Call<List<PublicPlayer>> call, Response<List<PublicPlayer>> response) {
-                    List<PublicPlayer> playerList = null;
-                    List<PublicPlayer> orderedPlayers = null;
-                    playerList = response.body();
+                    List<PublicPlayer> orderedPlayers = new ArrayList<>();
+                    List<PublicPlayer> playerList = response.body();
                     if(playerList != null){
                         //Success! We have retrieved other player information
                         Log.d("Scores", "Number of players: " + playerList.size());
                         while (!playerList.isEmpty()) {
-                            int maxValue = 0;
+                            int maxValue = -1;
                             PublicPlayer maxPlayer = null;
                             for (PublicPlayer player : playerList) {
+                                Log.d("Player Score", player.getScore().toString());
+                                if (maxPlayer == null){
+                                    maxPlayer = player;
+                                }
                                 if (player.getScore() > maxValue){
                                     maxValue = player.getScore();
                                     maxPlayer = player;
@@ -77,10 +89,13 @@ public class EndScreenActivity extends BaseActivity {
                             playerList.remove(maxPlayer);
                             orderedPlayers.add(maxPlayer);
                         }
+                        for (PublicPlayer player: orderedPlayers){
+                            Log.d("Top score Usernames", player.getUsername());
+                        }
                         updatePlayersInParty(orderedPlayers);
                     }
                     else {
-                        Log.d("GameScreenActivity", "Error retrieving other player locations");
+                        Log.d("EndScreenActivity", "Error retrieving other player scores");
                     }
                 }
 
@@ -108,7 +123,7 @@ public class EndScreenActivity extends BaseActivity {
 
     private void initListItems(){
         RecyclerView list = findViewById(R.id.ListItems);
-        PlayerListAdapter adapter = new PlayerListAdapter(getListItems());
+        ScoreListAdapter adapter = new ScoreListAdapter(getListItems());
         if(list.getAdapter() == null)
             list.setAdapter(adapter);
         else
