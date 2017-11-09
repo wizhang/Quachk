@@ -4,10 +4,12 @@ import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -18,6 +20,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import net.quachk.quachk.Models.Game;
 import net.quachk.quachk.Models.Party;
 import net.quachk.quachk.Models.PartyStatus;
 import net.quachk.quachk.Models.PartyUpdate;
@@ -82,6 +85,8 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
                 scan();
             }
         });
+
+        generatePoints(100, mPointMarkers); // The bonus points scattered around the map
     }
 
     @Override
@@ -105,7 +110,7 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
             mPoints = GameScreenConstants.DEFAULT_START_POINTS;
         }
         mPointsTextView = findViewById(R.id.Points);
-        mPointsTextView.setText(Integer.toString(mPoints));
+        updatePoints();
     }
 
     @Override
@@ -168,7 +173,39 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
     }
 
     private void scan() {
-        refreshMap();
+        LatLng currentLocation = new LatLng(
+                (double)App.GAME.CURRENT_PLAYER.getLatitude(),
+                (double)App.GAME.CURRENT_PLAYER.getLongitude());
+        LatLngBounds scanBounds = generateBounds(currentLocation, GameScreenConstants.SCAN_RADIUS);
+
+        // check to see if the player has enough points
+        if (mPoints > GameScreenConstants.SCAN_COST) {
+            checkForPoints(scanBounds);
+            refreshMap();
+            mPoints -= GameScreenConstants.SCAN_COST;
+            updatePoints();
+        } else {
+            Toast message = Toast.makeText(GameScreenActivity.this,
+                    "You do not have enough points!", Toast.LENGTH_SHORT);
+            message.setGravity(Gravity.TOP, 0, 0);
+            message.show();
+        }
+    }
+
+    /** Check to see if there are any points in the user's scan area */
+    private void checkForPoints(LatLngBounds scanBounds) {
+        for (int i = mPointMarkers.size() - 1; i >= 0; i--) {
+            LatLng point = mPointMarkers.get(i);
+            if (scanBounds.contains(point)) {
+                mPoints += GameScreenConstants.POINT_REWARD;
+                mPointMarkers.remove(i);
+            }
+        }
+    }
+
+    /** Update the points text view */
+    private void updatePoints() {
+        mPointsTextView.setText(Integer.toString(mPoints));
     }
 
     @Override
@@ -180,7 +217,7 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         mMap = map;
 
         mCenter = new LatLng(39.999475, -83.013086); // get party leader's position from server
-        generateMapBounds(mCenter);
+        mBounds = generateBounds(mCenter, GameScreenConstants.MAP_RADIUS);
 
         refreshMap();
     }
@@ -237,9 +274,6 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
             e.printStackTrace();
         }
 
-        mPointMarkers.clear();
-        generatePoints(100, mPointMarkers); // get from server
-
         drawMap();
     }
 
@@ -292,12 +326,12 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
     /**
      * Generates bounds for the map based on the center (team leader's location)
      */
-    private static void generateMapBounds(LatLng center) {
-        mBounds = new LatLngBounds(
-                new LatLng(center.latitude - GameScreenConstants.MAP_RADIUS,
-                        center.longitude - GameScreenConstants.MAP_RADIUS),
-                new LatLng(center.latitude + GameScreenConstants.MAP_RADIUS,
-                        center.longitude + GameScreenConstants.MAP_RADIUS));
+    private static LatLngBounds generateBounds(LatLng center, double radius) {
+        return new LatLngBounds(
+                new LatLng(center.latitude - radius,
+                        center.longitude - radius),
+                new LatLng(center.latitude + radius,
+                        center.longitude + radius));
     }
 
 }
