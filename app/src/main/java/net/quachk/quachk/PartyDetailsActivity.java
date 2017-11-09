@@ -3,6 +3,7 @@ package net.quachk.quachk;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Debug;
 import android.os.StrictMode;
@@ -20,6 +21,8 @@ import com.google.gson.Gson;
 
 import net.quachk.quachk.Adapters.PlayerListAdapter;
 import net.quachk.quachk.Models.Party;
+import net.quachk.quachk.Models.PartyStatus;
+import net.quachk.quachk.Models.PartyUpdate;
 import net.quachk.quachk.Models.Player;
 import net.quachk.quachk.Models.PublicPlayer;
 import net.quachk.quachk.Network.Network;
@@ -37,7 +40,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class PartyDetailsActivity extends BaseActivity {
+public class PartyDetailsActivity extends LocationActivity {
 
     private List<PublicPlayer> LIST_ITEMS;
     private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
@@ -48,12 +51,34 @@ public class PartyDetailsActivity extends BaseActivity {
             try {
                 getPlayersInParty();
                 Log.d("PartyDetailsActivity", "Updating party members");
+                getPartyStatus();
             }
             catch (Exception e){
                 Log.d("PartyDetailsActivity", "Failed updating party members");
             }
         }
     };
+
+    private void getPartyStatus() {
+        network().checkPartyStatus((String)App.GAME.CURRENT_PARTY.getPartyCode(), App.GAME.CURRENT_PLAYER)
+            .enqueue(new Callback<PartyStatus>() {
+                @Override
+                public void onResponse(Call<PartyStatus> call, Response<PartyStatus> response) {
+                    PartyStatus partyStatus = response.body();
+                    if(partyStatus.getParty().getEndTime() != null) {
+                        Log.d("PartyStatus", "game has started");
+                        startGame();
+                    } else {
+                        Log.d("PartyStatus", "game has not started yet");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<PartyStatus> call, Throwable t) {
+                    Log.d("PartyStatus", "failed to get party status");
+                }
+            });
+    }
 
 
     @Override
@@ -65,10 +90,51 @@ public class PartyDetailsActivity extends BaseActivity {
         RecyclerView list = findViewById(R.id.ListItems);
         list.setLayoutManager(new LinearLayoutManager(this));
         initListItems();
-
         ((TextView)findViewById(R.id.PartyCode)).setText(App.GAME.CURRENT_PARTY.getPartyCode().toString());
 
     }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+        executor.shutdownNow();
+        Log.d("PartyDetails", "shut down executor");
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        super.onLocationChanged(location);
+
+        App.GAME.CURRENT_PLAYER.setLatitude(location.getLatitude());
+        App.GAME.CURRENT_PLAYER.setLongitude(location.getLongitude());
+        try{
+            network().checkPartyStatus((String) App.GAME.CURRENT_PARTY.getPartyCode(), App.GAME.CURRENT_PLAYER).enqueue(new Callback<PartyStatus>() {
+                @Override
+                public void onResponse(Call<PartyStatus> call, Response<PartyStatus> response) {
+                    PartyStatus partyStatus = null;
+                    partyStatus = response.body();
+
+                    if(partyStatus != null){
+                    }
+                    else {
+                        Log.d("GameScreenActivity", "Error updating current player location");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<PartyStatus> call, Throwable t) {
+                    hideLoading();
+                    // Give Some Kind Of Error Update (The response should have some kind of error if it was server side).
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Log.w("Loc", "Location Updated:"); //Remove once we have verified that location is updating.
+    }
+
+
 
     @Override
     protected void onStart(){
@@ -78,23 +144,49 @@ public class PartyDetailsActivity extends BaseActivity {
         getStartGameButton().setVisibility(View.GONE);
         if(App.GAME.CURRENT_PARTY.getPartyLeaderId() == App.GAME.CURRENT_PLAYER.getPlayerId()) {
             showFragment(getPartyLeaderOptions());
-            getStartGameButton().setVisibility(View.VISIBLE);
-            findViewById(R.id.StartGameButton).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    startGame();
-                }
-            });
-        } else
+        } else {
             showFragment(getPlayerPartyOptions());
+        }
+        getStartGameButton().setVisibility(View.VISIBLE);
+        findViewById(R.id.StartGameButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startGame();
+            }
+        });
         Log.d("PartyDetailsActivity", "Executing update players task");
         executor.scheduleAtFixedRate(updatePlayersTask, 0, 3, TimeUnit.SECONDS);
     }
 
     private void startGame() {
-        executor.shutdownNow();
+        setPlayerInitialValues();
         Intent i = new Intent(this, GameScreenActivity.class);
         startActivity(i);
+        finish(); // do not allow the player to return to the party screen after a game has started
+    }
+
+    private void setPlayerInitialValues() {
+        Location currentLocation = getLocationController().getLastBestLocation();
+        App.GAME.CURRENT_PLAYER.setLatitude(currentLocation.getLatitude());
+        App.GAME.CURRENT_PLAYER.setLongitude(currentLocation.getLongitude());
+        Log.d("PartyDetailsActivity", "Set player's latitude to " + App.GAME.CURRENT_PLAYER.getLatitude());
+        Log.d("PartyDetailsActivity", "Set player's longitude to " + App.GAME.CURRENT_PLAYER.getLongitude());
+
+        if (App.GAME.CURRENT_PLAYER.getIsTagged() == null) {
+            App.GAME.CURRENT_PLAYER.setIsTagged(false);
+        }
+
+        network().checkPartyStatus((String) App.GAME.CURRENT_PARTY.getPartyCode(), App.GAME.CURRENT_PLAYER).enqueue(new Callback<PartyStatus>() {
+            @Override
+            public void onResponse(Call<PartyStatus> call, Response<PartyStatus> response) {
+                Log.d("update location", "success");
+            }
+
+            @Override
+            public void onFailure(Call<PartyStatus> call, Throwable t) {
+                Log.d("update location", "fail");
+            }
+        });
     }
 
 
