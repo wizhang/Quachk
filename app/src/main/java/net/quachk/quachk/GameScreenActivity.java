@@ -22,6 +22,7 @@ import net.quachk.quachk.Models.Party;
 import net.quachk.quachk.Models.PartyStatus;
 import net.quachk.quachk.Models.PartyUpdate;
 import net.quachk.quachk.Models.PublicPlayer;
+import net.quachk.quachk.Utility.GameScreenConstants;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -40,13 +41,12 @@ import retrofit2.Response;
 
 public class GameScreenActivity extends LocationActivity implements OnMapReadyCallback {
 
-    private ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
-    private TextView mTimeLimit;
-    private TextView mPoints;
-    private long endTime;
+    private static ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
+    private static TextView mTimeLimit;
+    private static TextView mPointsTextView;
+    private static long endTime;
     private static final DateFormat formatter = new SimpleDateFormat("mm:ss");
-    private static final int CIRCLE_SIZE = 15;
-    private static final double MAP_RADIUS = 0.005;
+    private static int mPoints;
 
     private static GoogleMap mMap;
     private static LatLng mCenter;
@@ -68,26 +68,13 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         super.onCreate(savedInstanceState);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.game_screen);
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.MapFragment);
         mapFragment.getMapAsync(this);
-
-        mTimeLimit = findViewById(R.id.TimeLimitIndicator);
-        if (App.GAME.CURRENT_PARTY.getEndTime() == null) {
-            Log.d("start game", "setting the end time");
-            App.GAME.CURRENT_PARTY.setEndTime(System.currentTimeMillis() + 15 * 60 * 1000); // the party leader will set this
-            updateParty();
-        }
-        endTime = (long) App.GAME.CURRENT_PARTY.getEndTime();
-
-        mTimeLimit.setText(formatter.format(new Date(endTime - System.currentTimeMillis())));
-        mExecutorService.scheduleAtFixedRate(mUpdateTime, 0, 1, TimeUnit.SECONDS);
-
-        mPoints = findViewById(R.id.Points);
-        mPoints.setText("1000");
 
         findViewById(R.id.ScanButton).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -95,6 +82,30 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
                 scan();
             }
         });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        mTimeLimit = findViewById(R.id.TimeLimitIndicator);
+        if (App.GAME.CURRENT_PARTY.getEndTime() == null) {
+            Log.d("start game", "setting the end time");
+            App.GAME.CURRENT_PARTY.setEndTime(System.currentTimeMillis() + 15 * 60 * 1000); // the party leader will set this
+            updateParty(); // push endtime to the server
+        }
+        endTime = (long) App.GAME.CURRENT_PARTY.getEndTime();
+
+        mTimeLimit.setText(formatter.format(new Date(endTime - System.currentTimeMillis())));
+        mExecutorService.scheduleAtFixedRate(mUpdateTime, 0, 1, TimeUnit.SECONDS);
+
+        if (App.GAME.CURRENT_PLAYER.getScore() == null) {
+            mPoints = App.GAME.CURRENT_PLAYER.getScore();
+        } else {
+            mPoints = GameScreenConstants.DEFAULT_START_POINTS;
+        }
+        mPointsTextView = findViewById(R.id.Points);
+        mPointsTextView.setText(Integer.toString(mPoints));
     }
 
     @Override
@@ -128,7 +139,8 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         App.GAME.CURRENT_PLAYER.setLatitude(location.getLatitude());
         App.GAME.CURRENT_PLAYER.setLongitude(location.getLongitude());
         try{
-            network().checkPartyStatus((String) App.GAME.CURRENT_PARTY.getPartyCode(), App.GAME.CURRENT_PLAYER).enqueue(new Callback<PartyStatus>() {
+            network().checkPartyStatus((String) App.GAME.CURRENT_PARTY.getPartyCode(),
+                    App.GAME.CURRENT_PLAYER).enqueue(new Callback<PartyStatus>() {
                 @Override
                 public void onResponse(Call<PartyStatus> call, Response<PartyStatus> response) {
                     PartyStatus partyStatus = null;
@@ -181,7 +193,8 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
      */
     public void refreshMap() {
         try{
-            network().fetchPlayersInParty((String) App.GAME.CURRENT_PARTY.getPartyCode(), App.GAME.CURRENT_PLAYER).enqueue(new Callback<List<PublicPlayer>>() {
+            network().fetchPlayersInParty((String) App.GAME.CURRENT_PARTY.getPartyCode(),
+                    App.GAME.CURRENT_PLAYER).enqueue(new Callback<List<PublicPlayer>>() {
                 @Override
                 public void onResponse(Call<List<PublicPlayer>> call, Response<List<PublicPlayer>> response) {
                     List<PublicPlayer> playerList = null;
@@ -241,11 +254,13 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         }
 
         for (LatLng runner : mRunners) {
-            mMap.addCircle(new CircleOptions().radius(CIRCLE_SIZE).fillColor(Color.BLUE).strokeWidth(0).center(runner));
+            mMap.addCircle(new CircleOptions().radius(GameScreenConstants.CIRCLE_SIZE)
+                    .fillColor(Color.BLUE).strokeWidth(0).center(runner));
         }
 
         for (LatLng tagger : mTaggers) {
-            mMap.addCircle(new CircleOptions().radius(CIRCLE_SIZE).fillColor(Color.RED).strokeWidth(0).center(tagger));
+            mMap.addCircle(new CircleOptions().radius(GameScreenConstants.CIRCLE_SIZE)
+                    .fillColor(Color.RED).strokeWidth(0).center(tagger));
         }
 
         mMap.setLatLngBoundsForCameraTarget(new LatLngBounds(mCenter, mCenter));
@@ -279,8 +294,10 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
      */
     private static void generateMapBounds(LatLng center) {
         mBounds = new LatLngBounds(
-                new LatLng(center.latitude - MAP_RADIUS, center.longitude - MAP_RADIUS),
-                new LatLng(center.latitude + MAP_RADIUS, center.longitude + MAP_RADIUS));
+                new LatLng(center.latitude - GameScreenConstants.MAP_RADIUS,
+                        center.longitude - GameScreenConstants.MAP_RADIUS),
+                new LatLng(center.latitude + GameScreenConstants.MAP_RADIUS,
+                        center.longitude + GameScreenConstants.MAP_RADIUS));
     }
 
 }
