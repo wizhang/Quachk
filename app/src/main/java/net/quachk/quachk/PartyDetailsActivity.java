@@ -73,6 +73,12 @@ public class PartyDetailsActivity extends LocationActivity {
     }
 
     @Override
+    protected void onPause(){
+        super.onPause();
+        executor.shutdownNow();
+    }
+
+    @Override
     public void onLocationChanged(Location location) {
         super.onLocationChanged(location);
 
@@ -129,7 +135,6 @@ public class PartyDetailsActivity extends LocationActivity {
     }
 
     private void startGame() {
-        executor.shutdownNow();
         Intent i = new Intent(this, GameScreenActivity.class);
         startActivity(i);
     }
