@@ -73,40 +73,6 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        try{
-            LocationController m = getLocationController();
-            Location t = m.getLastBestLocation();
-
-            Log.d("Test1", String.valueOf(t.getLatitude()));
-            Log.d("Test1", String.valueOf(t.getLongitude()));
-            Log.d("Test2", App.GAME.CURRENT_PLAYER.getLongitude().toString());
-            Log.d("Test2", App.GAME.CURRENT_PLAYER.getLatitude().toString());
-            App.GAME.CURRENT_PLAYER.setLongitude(0.0);
-            App.GAME.CURRENT_PLAYER.setLatitude(10.0);
-            network().checkPartyStatus((String) App.GAME.CURRENT_PARTY.getPartyCode(), App.GAME.CURRENT_PLAYER).enqueue(new Callback<PartyStatus>() {
-                @Override
-                public void onResponse(Call<PartyStatus> call, Response<PartyStatus> response) {
-                    PartyStatus partyStatus = null;
-                    partyStatus = response.body();
-
-                    if(partyStatus != null){
-                        //Success! We have updated player information
-                        Log.d("GameScreenActivity", "Successfully updating current player location");
-                    }
-                    else {
-                        Log.d("GameScreenActivity", "Error updating current player location");
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<PartyStatus> call, Throwable t) {
-                    hideLoading();
-                    // Give Some Kind Of Error Update (The response should have some kind of error if it was server side).
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
         super.onCreate(savedInstanceState);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -214,7 +180,7 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
                         mTaggers.clear();
                         Log.d("Map refresh", "Number of players: " + playerList.size());
                         for (PublicPlayer player: playerList){
-                            Log.d("Map refresh", "Number of players: " + player.getUsername());
+                            Log.d("Map refresh", "Player Name: " + player.getUsername());
                             Double latitude = (Double) player.getLatitude();
                             Double longitude = (Double) player.getLongitude();
                             Log.d("Map refresh", "Latitude: " + latitude + " Longitude: " + longitude);
