@@ -178,6 +178,7 @@ public class PartyDetailsActivity extends LocationActivity {
     private void startGame() {
         Intent i = new Intent(this, GameScreenActivity.class);
         startActivity(i);
+        finish(); // do not allow the player to return to the party screen after a game has started
     }
 
 
