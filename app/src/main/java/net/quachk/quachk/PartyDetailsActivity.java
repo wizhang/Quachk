@@ -3,6 +3,7 @@ package net.quachk.quachk;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Debug;
 import android.os.StrictMode;
@@ -20,6 +21,7 @@ import com.google.gson.Gson;
 
 import net.quachk.quachk.Adapters.PlayerListAdapter;
 import net.quachk.quachk.Models.Party;
+import net.quachk.quachk.Models.PartyStatus;
 import net.quachk.quachk.Models.Player;
 import net.quachk.quachk.Models.PublicPlayer;
 import net.quachk.quachk.Network.Network;
@@ -37,7 +39,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class PartyDetailsActivity extends BaseActivity {
+public class PartyDetailsActivity extends LocationActivity {
 
     private List<PublicPlayer> LIST_ITEMS;
     private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
@@ -69,6 +71,41 @@ public class PartyDetailsActivity extends BaseActivity {
         ((TextView)findViewById(R.id.PartyCode)).setText(App.GAME.CURRENT_PARTY.getPartyCode().toString());
 
     }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        super.onLocationChanged(location);
+
+        App.GAME.CURRENT_PLAYER.setLatitude(location.getLatitude());
+        App.GAME.CURRENT_PLAYER.setLongitude(location.getLongitude());
+        try{
+            network().checkPartyStatus((String) App.GAME.CURRENT_PARTY.getPartyCode(), App.GAME.CURRENT_PLAYER).enqueue(new Callback<PartyStatus>() {
+                @Override
+                public void onResponse(Call<PartyStatus> call, Response<PartyStatus> response) {
+                    PartyStatus partyStatus = null;
+                    partyStatus = response.body();
+
+                    if(partyStatus != null){
+                        //Success! We have updated player information
+                    }
+                    else {
+                        Log.d("GameScreenActivity", "Error updating current player location");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<PartyStatus> call, Throwable t) {
+                    hideLoading();
+                    // Give Some Kind Of Error Update (The response should have some kind of error if it was server side).
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Log.w("Loc", "Location Updated:"); //Remove once we have verified that location is updating.
+    }
+
 
     @Override
     protected void onStart(){
