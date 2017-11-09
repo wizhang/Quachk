@@ -63,7 +63,6 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
     private Runnable update = new Runnable() {
         @Override
         public void run() {
-            Log.d("update", "Runnable called");
             if (App.GAME.CURRENT_PARTY.getPointSecond() != null) {
                 mPoints += App.GAME.CURRENT_PARTY.getPointSecond();
             } else {
@@ -80,7 +79,6 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
                 isTagged = true;
             }
             updateTextViews();
-            Log.d("update", "Runnable finished");
         }
     };
 
@@ -89,7 +87,7 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (endTime - System.currentTimeMillis() < 0) {
+                if (endTime - System.currentTimeMillis() <= 0) {
                     endGame();
                 }
                 mTimeLimit.setText(formatter.format(new Date(endTime - System.currentTimeMillis())));
@@ -347,32 +345,34 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
      * Draws the map with indicators for points, runners, and taggers
      */
     private static void drawMap() {
-        mMap.clear();
+        if (mMap != null) {
+            mMap.clear();
 
-        for (LatLng point : mPointMarkers) {
-            mMap.addMarker(new MarkerOptions().position(point));
+            for (LatLng point : mPointMarkers) {
+                mMap.addMarker(new MarkerOptions().position(point));
+            }
+
+            for (PublicPlayer runner : mRunners) {
+                LatLng runnerPostion = new LatLng((double) runner.getLatitude(),
+                        (double) runner.getLongitude());
+                mMap.addCircle(new CircleOptions().radius(GameScreenConstants.CIRCLE_SIZE)
+                        .fillColor(Color.BLUE).strokeWidth(0).center(runnerPostion));
+            }
+
+            for (LatLng tagger : mTaggers) {
+                mMap.addCircle(new CircleOptions().radius(GameScreenConstants.CIRCLE_SIZE)
+                        .fillColor(Color.RED).strokeWidth(0).center(tagger));
+            }
+
+            // draw current location
+            LatLng currentLocation = new LatLng((double) App.GAME.CURRENT_PLAYER.getLatitude(),
+                    (double) App.GAME.CURRENT_PLAYER.getLongitude());
+            mMap.addCircle(new CircleOptions().center(currentLocation).fillColor(Color.BLACK)
+                    .strokeColor(Color.BLUE).radius(30.0f).strokeWidth(10.0f));
+
+            mMap.setLatLngBoundsForCameraTarget(new LatLngBounds(currentLocation, currentLocation));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mBounds, 0));
         }
-
-        for (PublicPlayer runner : mRunners) {
-            LatLng runnerPostion = new LatLng((double)runner.getLatitude(),
-                    (double)runner.getLongitude());
-            mMap.addCircle(new CircleOptions().radius(GameScreenConstants.CIRCLE_SIZE)
-                    .fillColor(Color.BLUE).strokeWidth(0).center(runnerPostion));
-        }
-
-        for (LatLng tagger : mTaggers) {
-            mMap.addCircle(new CircleOptions().radius(GameScreenConstants.CIRCLE_SIZE)
-                    .fillColor(Color.RED).strokeWidth(0).center(tagger));
-        }
-
-        // draw current location
-        LatLng currentLocation = new LatLng((double)App.GAME.CURRENT_PLAYER.getLatitude(),
-                (double)App.GAME.CURRENT_PLAYER.getLongitude());
-        mMap.addCircle(new CircleOptions().center(currentLocation).fillColor(Color.BLACK)
-                .strokeColor(Color.BLUE).radius(30.0f).strokeWidth(10.0f));
-
-        mMap.setLatLngBoundsForCameraTarget(new LatLngBounds(currentLocation, currentLocation));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mBounds, 0));
     }
 
     /**
