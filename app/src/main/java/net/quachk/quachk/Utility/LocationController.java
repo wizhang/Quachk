@@ -65,8 +65,6 @@ public class LocationController {
 
         if(ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500, (float) (0.00001), _locationListener);
-            Toast toast = Toast.makeText(getContext(), "Location Updates Active", Toast.LENGTH_LONG);
-            toast.show();
         }
 
         _isEnabled = true;
