@@ -184,11 +184,15 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
                             Double latitude = (Double) player.getLatitude();
                             Double longitude = (Double) player.getLongitude();
                             Log.d("Map refresh", "Latitude: " + latitude + " Longitude: " + longitude);
-                            if (player.getIsTagged()){
-                                mTaggers.add(new LatLng(latitude, longitude));
+                            if (latitude == null || longitude == null){
+                                Log.d("Map refresh", player.getUsername() + " does not have a location saved.");
                             }
-                            else{
-                                mRunners.add(new LatLng(latitude, longitude));
+                            else {
+                                if (player.getIsTagged()) {
+                                    mTaggers.add(new LatLng(latitude, longitude));
+                                } else {
+                                    mRunners.add(new LatLng(latitude, longitude));
+                                }
                             }
                         }
                     }
