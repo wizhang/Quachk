@@ -3,7 +3,6 @@ package net.quachk.quachk;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -30,6 +29,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -38,7 +40,7 @@ import retrofit2.Response;
 
 public class GameScreenActivity extends LocationActivity implements OnMapReadyCallback {
 
-    private Handler mHandler = new Handler();
+    private ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
     private TextView mTimeLimit;
     private TextView mPoints;
     private long endTime;
@@ -46,7 +48,6 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
     private static final int CIRCLE_SIZE = 15;
     private static final double MAP_RADIUS = 0.005;
 
-    private static boolean initialized = false;
     private static GoogleMap mMap;
     private static LatLng mCenter;
     private static List<LatLng> mRunners = new ArrayList<>();
@@ -58,7 +59,6 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         @Override
         public void run() {
             mTimeLimit.setText(formatter.format(new Date(endTime - System.currentTimeMillis())));
-            mHandler.postDelayed(mUpdateTime, 1000);
         }
     };
 
@@ -84,7 +84,7 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         endTime = (long) App.GAME.CURRENT_PARTY.getEndTime();
 
         mTimeLimit.setText(formatter.format(new Date(endTime - System.currentTimeMillis())));
-        mHandler.post(mUpdateTime);
+        mExecutorService.scheduleAtFixedRate(mUpdateTime, 0, 1, TimeUnit.SECONDS);
 
         mPoints = findViewById(R.id.Points);
         mPoints.setText("1000");
@@ -95,6 +95,13 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
                 scan();
             }
         });
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mExecutorService.shutdown();
+        finish();
     }
 
     private void updateParty() {
@@ -164,14 +171,6 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         generateMapBounds(mCenter);
 
         refreshMap();
-
-        drawMap();
-
-        initialized = true;
-    }
-
-    public static boolean isInitialized() {
-        return initialized;
     }
 
     /**
