@@ -88,10 +88,19 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                if (endTime - System.currentTimeMillis() < 0) {
+                    endGame();
+                }
                 mTimeLimit.setText(formatter.format(new Date(endTime - System.currentTimeMillis())));
                 updatePoints();
             }
         });
+    }
+
+    /** end the game and go to scores screen */
+    private void endGame() {
+        /** END GAME ACTIVITY INTENT HERE */
+        finish();
     }
 
     @Override
@@ -128,7 +137,7 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         mTimeLimit = findViewById(R.id.TimeLimitIndicator);
         if (App.GAME.CURRENT_PARTY.getEndTime() == null) {
             Log.d("start game", "setting the end time");
-            App.GAME.CURRENT_PARTY.setEndTime(System.currentTimeMillis() + 15 * 60 * 1000); // the party leader will set this
+            App.GAME.CURRENT_PARTY.setEndTime(System.currentTimeMillis() + 30 * 1000); // the party leader will set this
             updateParty(); // push endtime to the server
         }
         endTime = (long) App.GAME.CURRENT_PARTY.getEndTime();
