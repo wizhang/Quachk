@@ -1,5 +1,6 @@
 package net.quachk.quachk;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
@@ -99,7 +100,8 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
 
     /** end the game and go to scores screen */
     private void endGame() {
-        /** END GAME ACTIVITY INTENT HERE */
+        openTest();
+        mExecutorService.shutdownNow();
         finish();
     }
 
@@ -174,8 +176,13 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
             @Override
             public void onFailure(Call<Party> call, Throwable t) {
                 Log.d("GameScreenActivity", "failed to update party");
-            }
+            };
         });
+    }
+
+    private void openTest() {
+        Intent test = new Intent(this, EndScreenActivity.class);
+        startActivity(test);
     }
 
     @Override
