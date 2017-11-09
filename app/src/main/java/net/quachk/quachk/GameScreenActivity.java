@@ -1,18 +1,9 @@
 package net.quachk.quachk;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.location.Location;
 import android.os.Bundle;
-import android.os.Debug;
 import android.os.Handler;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -28,17 +19,17 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import net.quachk.quachk.Models.Party;
+import net.quachk.quachk.Models.PartyStatus;
+import net.quachk.quachk.Models.PartyUpdate;
+import net.quachk.quachk.Models.PublicPlayer;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
-
-import net.quachk.quachk.Models.Game;
-import net.quachk.quachk.Models.PartyStatus;
-import net.quachk.quachk.Models.PublicPlayer;
-import net.quachk.quachk.Utility.LocationController;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -85,7 +76,13 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         mapFragment.getMapAsync(this);
 
         mTimeLimit = findViewById(R.id.TimeLimitIndicator);
-        endTime = System.currentTimeMillis() + 15 * 60 * 1000; // get/set this on the server
+        if (App.GAME.CURRENT_PARTY.getEndTime() == null) {
+            Log.d("start game", "setting the end time");
+            App.GAME.CURRENT_PARTY.setEndTime(System.currentTimeMillis() + 15 * 60 * 1000); // the party leader will set this
+            updateParty();
+        }
+        endTime = (long) App.GAME.CURRENT_PARTY.getEndTime();
+
         mTimeLimit.setText(formatter.format(new Date(endTime - System.currentTimeMillis())));
         mHandler.post(mUpdateTime);
 
@@ -96,6 +93,23 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
             @Override
             public void onClick(View view) {
                 scan();
+            }
+        });
+    }
+
+    private void updateParty() {
+        PartyUpdate update = new PartyUpdate();
+        update.setPlayer(App.GAME.CURRENT_PLAYER);
+        update.setParty(App.GAME.CURRENT_PARTY);
+        network().updatePartySettings(update).enqueue(new Callback<Party>() {
+            @Override
+            public void onResponse(Call<Party> call, Response<Party> response) {
+                Log.d("GameScreenActivity", "updated party successfully");
+            }
+
+            @Override
+            public void onFailure(Call<Party> call, Throwable t) {
+                Log.d("GameScreenActivity", "failed to update party");
             }
         });
     }

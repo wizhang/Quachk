@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import net.quachk.quachk.Adapters.PlayerListAdapter;
 import net.quachk.quachk.Models.Party;
 import net.quachk.quachk.Models.PartyStatus;
+import net.quachk.quachk.Models.PartyUpdate;
 import net.quachk.quachk.Models.Player;
 import net.quachk.quachk.Models.PublicPlayer;
 import net.quachk.quachk.Network.Network;
@@ -50,12 +51,34 @@ public class PartyDetailsActivity extends LocationActivity {
             try {
                 getPlayersInParty();
                 Log.d("PartyDetailsActivity", "Updating party members");
+                getPartyStatus();
             }
             catch (Exception e){
                 Log.d("PartyDetailsActivity", "Failed updating party members");
             }
         }
     };
+
+    private void getPartyStatus() {
+        network().checkPartyStatus((String)App.GAME.CURRENT_PARTY.getPartyCode(), App.GAME.CURRENT_PLAYER)
+            .enqueue(new Callback<PartyStatus>() {
+                @Override
+                public void onResponse(Call<PartyStatus> call, Response<PartyStatus> response) {
+                    PartyStatus partyStatus = response.body();
+                    if(partyStatus.getParty().getEndTime() != null) {
+                        Log.d("PartyStatus", "game has started");
+                        startGame();
+                    } else {
+                        Log.d("PartyStatus", "game has not started yet");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<PartyStatus> call, Throwable t) {
+                    Log.d("PartyStatus", "failed to get party status");
+                }
+            });
+    }
 
 
     @Override
@@ -67,7 +90,6 @@ public class PartyDetailsActivity extends LocationActivity {
         RecyclerView list = findViewById(R.id.ListItems);
         list.setLayoutManager(new LinearLayoutManager(this));
         initListItems();
-
         ((TextView)findViewById(R.id.PartyCode)).setText(App.GAME.CURRENT_PARTY.getPartyCode().toString());
 
     }
@@ -92,7 +114,6 @@ public class PartyDetailsActivity extends LocationActivity {
                     partyStatus = response.body();
 
                     if(partyStatus != null){
-                        //Success! We have updated player information
                     }
                     else {
                         Log.d("GameScreenActivity", "Error updating current player location");
@@ -132,6 +153,26 @@ public class PartyDetailsActivity extends LocationActivity {
             showFragment(getPlayerPartyOptions());
         Log.d("PartyDetailsActivity", "Executing update players task");
         executor.scheduleAtFixedRate(updatePlayersTask, 0, 3, TimeUnit.SECONDS);
+
+
+        Location currentLocation = getLocationController().getLastBestLocation();
+        App.GAME.CURRENT_PLAYER.setLatitude(currentLocation.getLatitude());
+        App.GAME.CURRENT_PLAYER.setLongitude(currentLocation.getLongitude());
+        Log.d("PartyDetailsActivity", "Set player's latitude to " + App.GAME.CURRENT_PLAYER.getLatitude());
+        Log.d("PartyDetailsActivity", "Set player's longitude to " + App.GAME.CURRENT_PLAYER.getLongitude());
+
+
+        network().checkPartyStatus((String) App.GAME.CURRENT_PARTY.getPartyCode(), App.GAME.CURRENT_PLAYER).enqueue(new Callback<PartyStatus>() {
+            @Override
+            public void onResponse(Call<PartyStatus> call, Response<PartyStatus> response) {
+                Log.d("update location", "success");
+            }
+
+            @Override
+            public void onFailure(Call<PartyStatus> call, Throwable t) {
+                Log.d("update location", "fail");
+            }
+        });
     }
 
     private void startGame() {
