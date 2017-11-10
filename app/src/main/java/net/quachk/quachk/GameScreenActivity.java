@@ -26,6 +26,7 @@ import net.quachk.quachk.Models.PartyStatus;
 import net.quachk.quachk.Models.PartyUpdate;
 import net.quachk.quachk.Models.PublicPlayer;
 import net.quachk.quachk.Utility.GameScreenConstants;
+import net.quachk.quachk.Utility.PlayerUpdater;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -49,7 +50,6 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
     private static TextView mPointsTextView;
     private static long endTime;
     private static final DateFormat formatter = new SimpleDateFormat("mm:ss");
-    private static int mPoints;
 
     private static GoogleMap mMap;
     private static LatLng mCenter;
@@ -60,14 +60,19 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
 
     private static boolean isTagged;
 
+    private static PlayerUpdater mPlayerUpdater;
+
     private Runnable update = new Runnable() {
         @Override
         public void run() {
             if (App.GAME.CURRENT_PARTY.getPointSecond() != null) {
-                mPoints += App.GAME.CURRENT_PARTY.getPointSecond();
+                App.GAME.CURRENT_PLAYER.setScore(
+                        App.GAME.CURRENT_PLAYER.getScore() +
+                                App.GAME.CURRENT_PARTY.getPointSecond());
             } else {
-                mPoints += GameScreenConstants.DEFAULT_POINTS_PER_SECOND;
-            }
+                App.GAME.CURRENT_PLAYER.setScore(
+                        App.GAME.CURRENT_PLAYER.getScore() +
+                                GameScreenConstants.DEFAULT_POINTS_PER_SECOND); }
 
             if (App.GAME.CURRENT_PLAYER.getIsTagged() != null &&
                     isTagged != App.GAME.CURRENT_PLAYER.getIsTagged()) {
@@ -78,6 +83,8 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
                 message.show();
                 isTagged = true;
             }
+
+            mPlayerUpdater.updatePlayer(); //send the player's information to the server
             updateTextViews();
         }
     };
@@ -94,13 +101,6 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
                 updatePoints();
             }
         });
-    }
-
-    /** end the game and go to scores screen */
-    private void endGame() {
-        openTest();
-        mExecutorService.shutdownNow();
-        finish();
     }
 
     @Override
@@ -128,27 +128,25 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         } else {
             isTagged = false;
         }
+
+        mPlayerUpdater = new PlayerUpdater();
     }
 
     @Override
     protected void onStart() {
+        if (App.GAME.CURRENT_PARTY.getEndTime() == null) {
+            Log.d("start game", "setting the end time");
+            App.GAME.CURRENT_PARTY.setEndTime(System.currentTimeMillis() + 5 * 60 * 1000); // the party leader will set this
+            updateParty(); // push endtime to the server
         super.onStart();
 
         mTimeLimit = findViewById(R.id.TimeLimitIndicator);
-        if (App.GAME.CURRENT_PARTY.getEndTime() == null) {
-            Log.d("start game", "setting the end time");
-            App.GAME.CURRENT_PARTY.setEndTime(System.currentTimeMillis() + 30 * 1000); // the party leader will set this
-            updateParty(); // push endtime to the server
         }
-        endTime = (long) App.GAME.CURRENT_PARTY.getEndTime();
+    endTime = (long) App.GAME.CURRENT_PARTY.getEndTime();
 
         mTimeLimit.setText(formatter.format(new Date(endTime - System.currentTimeMillis())));
 
-        if (App.GAME.CURRENT_PLAYER.getScore() == null) {
-            mPoints = App.GAME.CURRENT_PLAYER.getScore();
-        } else {
-            mPoints = GameScreenConstants.DEFAULT_START_POINTS;
-        }
+        App.GAME.CURRENT_PLAYER.setScore(GameScreenConstants.DEFAULT_START_POINTS);
         mPointsTextView = findViewById(R.id.Points);
         updatePoints();
         mExecutorService.scheduleAtFixedRate(update, 0, 1, TimeUnit.SECONDS);
@@ -161,6 +159,15 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         finish();
     }
 
+
+    /** end the game and go to scores screen */
+    private void endGame() {
+        openTest();
+        mExecutorService.shutdownNow();
+        finish();
+    }
+
+
     private void updateParty() {
         PartyUpdate update = new PartyUpdate();
         update.setPlayer(App.GAME.CURRENT_PLAYER);
@@ -169,6 +176,11 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
             @Override
             public void onResponse(Call<Party> call, Response<Party> response) {
                 Log.d("GameScreenActivity", "updated party successfully");
+                if (response.body() != null) {
+                    Log.d("response body", "not null");
+                } else {
+                    Log.d("response body", "null");
+                }
             }
 
             @Override
@@ -190,27 +202,7 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         App.GAME.CURRENT_PLAYER.setLatitude(location.getLatitude());
         App.GAME.CURRENT_PLAYER.setLongitude(location.getLongitude());
         try{
-            network().checkPartyStatus((String) App.GAME.CURRENT_PARTY.getPartyCode(),
-                    App.GAME.CURRENT_PLAYER).enqueue(new Callback<PartyStatus>() {
-                @Override
-                public void onResponse(Call<PartyStatus> call, Response<PartyStatus> response) {
-                    PartyStatus partyStatus = null;
-                    partyStatus = response.body();
-
-                    if(partyStatus != null){
-                        //Success! We have updated player information
-                    }
-                    else {
-                        Log.d("GameScreenActivity", "Error updating current player location");
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<PartyStatus> call, Throwable t) {
-                    hideLoading();
-                    // Give Some Kind Of Error Update (The response should have some kind of error if it was server side).
-                }
-            });
+            mPlayerUpdater.updatePlayer();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -225,7 +217,7 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         LatLngBounds scanBounds = generateBounds(currentLocation, GameScreenConstants.SCAN_RADIUS);
 
         // check to see if the player has enough points
-        if (mPoints >= GameScreenConstants.SCAN_COST) {
+        if (App.GAME.CURRENT_PLAYER.getScore() >= GameScreenConstants.SCAN_COST) {
             checkForPoints(scanBounds);
             if (isTagged) {
                 refreshMap(); // update runners/taggers lists
@@ -233,7 +225,7 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
             }
             refreshMap();
             drawMap();
-            mPoints -= GameScreenConstants.SCAN_COST;
+            App.GAME.CURRENT_PLAYER.setScore(GameScreenConstants.SCAN_COST);
             updatePoints();
         } else {
             Toast message = Toast.makeText(GameScreenActivity.this,
@@ -259,7 +251,8 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         for (int i = mPointMarkers.size() - 1; i >= 0; i--) {
             LatLng point = mPointMarkers.get(i);
             if (scanBounds.contains(point)) {
-                mPoints += GameScreenConstants.POINT_REWARD;
+                App.GAME.CURRENT_PLAYER.setScore(
+                        App.GAME.CURRENT_PLAYER.getScore() + GameScreenConstants.POINT_REWARD);
                 mPointMarkers.remove(i);
             }
         }
@@ -267,7 +260,8 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
 
     /** Update the points text view */
     private void updatePoints() {
-        mPointsTextView.setText(Integer.toString(mPoints));
+        mPointsTextView.setText(Integer.toString(
+                App.GAME.CURRENT_PLAYER.getScore()));
     }
 
     @Override
