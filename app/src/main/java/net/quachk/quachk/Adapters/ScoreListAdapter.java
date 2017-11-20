@@ -21,7 +21,7 @@ public class ScoreListAdapter extends RecyclerView.Adapter<ScoreListAdapter.View
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.player_list_item, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.player_score_list_item, parent, false);
         return new ViewHolder(view);
     }
 
@@ -51,13 +51,15 @@ public class ScoreListAdapter extends RecyclerView.Adapter<ScoreListAdapter.View
      */
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
-        TextView text;
+        TextView textName;
+        TextView textScore;
 
         private PublicPlayer _item;
         public ViewHolder(View itemView) {
             super(itemView);
             itemView.setOnClickListener(this);
-            text = itemView.findViewById(R.id.text);
+            textName = itemView.findViewById(R.id.textName);
+            textScore = itemView.findViewById(R.id.textScore);
         }
 
         /**
@@ -72,7 +74,8 @@ public class ScoreListAdapter extends RecyclerView.Adapter<ScoreListAdapter.View
          * Updates the view of this item based on the PublicPlayer
          */
         public void setValues(int position){
-            text.setText( ++position + ". " + this._item.getUsername() + " - Score: " + this._item.getScore());
+            textName.setText( ++position + ". " + this._item.getUsername());
+            textScore.setText("Score: " + this._item.getScore());
         }
         @Override
         public void onClick(View view) {
