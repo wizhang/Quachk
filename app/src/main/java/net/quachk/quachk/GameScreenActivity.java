@@ -105,7 +105,6 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.game_screen);
@@ -130,25 +129,26 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         }
 
         mPlayerUpdater = new PlayerUpdater();
+
+        App.GAME.CURRENT_PLAYER.setScore(GameScreenConstants.DEFAULT_START_POINTS);
+        mPointsTextView = findViewById(R.id.Points);
     }
 
     @Override
     protected void onStart() {
+        super.onStart();
         if (App.GAME.CURRENT_PARTY.getEndTime() == null) {
             Log.d("start game", "setting the end time");
-            App.GAME.CURRENT_PARTY.setEndTime(System.currentTimeMillis() + 5 * 60 * 1000); // the party leader will set this
+            App.GAME.CURRENT_PARTY.setEndTime(System.currentTimeMillis() + 10 * 1000); // the party leader will set this
             updateParty(); // push endtime to the server
-        super.onStart();
+        }
+        endTime = (long) App.GAME.CURRENT_PARTY.getEndTime();
 
         mTimeLimit = findViewById(R.id.TimeLimitIndicator);
-        }
-    endTime = (long) App.GAME.CURRENT_PARTY.getEndTime();
-
         mTimeLimit.setText(formatter.format(new Date(endTime - System.currentTimeMillis())));
 
-        App.GAME.CURRENT_PLAYER.setScore(GameScreenConstants.DEFAULT_START_POINTS);
-        mPointsTextView = findViewById(R.id.Points);
         updatePoints();
+
         mExecutorService.scheduleAtFixedRate(update, 0, 1, TimeUnit.SECONDS);
     }
 
@@ -162,7 +162,8 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
 
     /** end the game and go to scores screen */
     private void endGame() {
-        openTest();
+        Intent endGame = new Intent(this, EndScreenActivity.class);
+        startActivity(endGame);
         mExecutorService.shutdownNow();
         finish();
     }
@@ -190,11 +191,6 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         });
     }
 
-    private void openTest() {
-        Intent test = new Intent(this, EndScreenActivity.class);
-        startActivity(test);
-    }
-
     @Override
     public void onLocationChanged(Location location) {
         super.onLocationChanged(location);
@@ -207,7 +203,7 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
             e.printStackTrace();
         }
 
-        Log.w("Loc", "Location Updated:"); //Remove once we have verified that location is updating.
+        Log.w("onLocationChanged", "Location Updated:"); //Remove once we have verified that location is updating.
     }
 
     private void scan() {
@@ -216,7 +212,7 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
                 (double)App.GAME.CURRENT_PLAYER.getLongitude());
         LatLngBounds scanBounds = generateBounds(currentLocation, GameScreenConstants.SCAN_RADIUS);
 
-        // check to see if the player has enough points
+        // Check if the player has enough points
         if (App.GAME.CURRENT_PLAYER.getScore() >= GameScreenConstants.SCAN_COST) {
             checkForPoints(scanBounds);
             if (isTagged) {
@@ -225,7 +221,7 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
             }
             refreshMap();
             drawMap();
-            App.GAME.CURRENT_PLAYER.setScore(GameScreenConstants.SCAN_COST);
+            App.GAME.CURRENT_PLAYER.setScore(App.GAME.CURRENT_PLAYER.getScore() - GameScreenConstants.SCAN_COST);
             updatePoints();
         } else {
             Toast message = Toast.makeText(GameScreenActivity.this,
@@ -337,6 +333,7 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
 
     /**
      * Draws the map with indicators for points, runners, and taggers
+     * Draws player's current position
      */
     private static void drawMap() {
         if (mMap != null) {
@@ -384,7 +381,7 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         double minLng = Math.min(northeast.longitude, southwest.longitude);
         double maxLng = Math.max(northeast.longitude, southwest.longitude);
 
-        while (--numberOfPoints >= 0) { // add points to server
+        while (--numberOfPoints >= 0) {
             points.add(new LatLng(
                     minLat + r.nextDouble() * (maxLat - minLat),
                     minLng + r.nextDouble() * (maxLng - minLng)));
