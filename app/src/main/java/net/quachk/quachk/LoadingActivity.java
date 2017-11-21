@@ -38,18 +38,6 @@ public class LoadingActivity extends BaseActivity {
 
         App.setActivity(this);
         Permissions.initialize();
-
-        findViewById(R.id.TestButton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                openTest();
-            }
-        });
-    }
-
-    private void openTest() {
-        Intent test = new Intent(this, EndScreenActivity.class);
-        startActivity(test);
     }
 
     @Override

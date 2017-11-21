@@ -6,11 +6,13 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.design.widget.TextInputLayout;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import net.quachk.quachk.App;
 import net.quachk.quachk.Models.Game;
@@ -73,8 +75,12 @@ public class LoginCredentials extends BaseFragment{
 
             @Override
             public void onFailure(Call<Player> call, Throwable t) {
+                Toast error = Toast.makeText(getActivity().getApplicationContext(),
+                        "Error: Please ensure that you are connected to the internet.", Toast.LENGTH_SHORT);
+                error.setGravity(Gravity.TOP, 0, 0);
+                error.show();
+
                 hideLoading();
-                // Give Some Kind Of Error Update (The response should have some kind of error if it was server side).
             }
         });
     }

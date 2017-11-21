@@ -4,10 +4,12 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import net.quachk.quachk.App;
 import net.quachk.quachk.CredentialsActivity;
@@ -73,7 +75,11 @@ public class SignupCredentials extends BaseFragment {
 
             @Override
             public void onFailure(Call<Player> call, Throwable t) {
-                // Give Some Kind Of Error Update (The response should have some kind of error if it was server side).
+                Toast error = Toast.makeText(getActivity().getApplicationContext(),
+                        "Error: Please ensure that you are connected to the internet.", Toast.LENGTH_SHORT);
+                error.setGravity(Gravity.TOP, 0, 0);
+                error.show();
+
                 hideLoading();
             }
         });
