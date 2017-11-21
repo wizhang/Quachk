@@ -45,7 +45,7 @@ import retrofit2.Response;
 
 public class GameScreenActivity extends LocationActivity implements OnMapReadyCallback {
 
-    private static ScheduledExecutorService mExecutorService = Executors.newScheduledThreadPool(1);
+    private ScheduledExecutorService mExecutorService = Executors.newScheduledThreadPool(1);
     private static TextView mTimeLimit;
     private static TextView mPointsTextView;
     private static long endTime;
@@ -130,8 +130,11 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
 
         mPlayerUpdater = new PlayerUpdater();
 
-        App.GAME.CURRENT_PLAYER.setScore(GameScreenConstants.DEFAULT_START_POINTS);
+        if (App.GAME.CURRENT_PLAYER.getScore() == 0) {
+            App.GAME.CURRENT_PLAYER.setScore(GameScreenConstants.DEFAULT_START_POINTS);
+        }
         mPointsTextView = findViewById(R.id.Points);
+        mExecutorService.scheduleAtFixedRate(update, 0, 1, TimeUnit.SECONDS);
     }
 
     @Override
@@ -148,17 +151,13 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         mTimeLimit.setText(formatter.format(new Date(endTime - System.currentTimeMillis())));
 
         updatePoints();
-
-        mExecutorService.scheduleAtFixedRate(update, 0, 1, TimeUnit.SECONDS);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         mExecutorService.shutdownNow();
-        finish();
     }
-
 
     /** end the game and go to scores screen */
     private void endGame() {
