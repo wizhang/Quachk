@@ -26,6 +26,7 @@ import net.quachk.quachk.Models.PartyStatus;
 import net.quachk.quachk.Models.PartyUpdate;
 import net.quachk.quachk.Models.PublicPlayer;
 import net.quachk.quachk.Utility.GameScreenConstants;
+import net.quachk.quachk.Utility.GameScreenUtility;
 import net.quachk.quachk.Utility.PlayerUpdater;
 
 import java.text.DateFormat;
@@ -209,11 +210,16 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         LatLng currentLocation = new LatLng(
                 (double)App.GAME.CURRENT_PLAYER.getLatitude(),
                 (double)App.GAME.CURRENT_PLAYER.getLongitude());
-        LatLngBounds scanBounds = generateBounds(currentLocation, GameScreenConstants.SCAN_RADIUS);
+        LatLngBounds scanBounds = GameScreenUtility.generateBounds(currentLocation, GameScreenConstants.SCAN_RADIUS);
 
         // Check if the player has enough points
         if (App.GAME.CURRENT_PLAYER.getScore() >= GameScreenConstants.SCAN_COST) {
-            checkForPoints(scanBounds);
+            List<LatLng> points = GameScreenUtility.checkForPoints(currentLocation, mPointMarkers);
+            for (LatLng point : points) {
+                mPointMarkers.remove(point);
+                App.GAME.CURRENT_PLAYER.setScore(App.GAME.CURRENT_PLAYER.getScore() + GameScreenConstants.POINT_REWARD);
+            }
+
             if (isTagged) {
                 refreshMap(); // update runners/taggers lists
                 checkForRunners(scanBounds);
@@ -241,18 +247,6 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         }
     }
 
-    /** Check to see if there are any points in the user's scan area */
-    private void checkForPoints(LatLngBounds scanBounds) {
-        for (int i = mPointMarkers.size() - 1; i >= 0; i--) {
-            LatLng point = mPointMarkers.get(i);
-            if (scanBounds.contains(point)) {
-                App.GAME.CURRENT_PLAYER.setScore(
-                        App.GAME.CURRENT_PLAYER.getScore() + GameScreenConstants.POINT_REWARD);
-                mPointMarkers.remove(i);
-            }
-        }
-    }
-
     /** Update the points text view */
     private void updatePoints() {
         mPointsTextView.setText(Integer.toString(
@@ -268,8 +262,8 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         mMap = map;
 
         mCenter = new LatLng(39.999475, -83.013086); // get party leader's position from server
-        mBounds = generateBounds(mCenter, GameScreenConstants.MAP_RADIUS);
-        generatePoints(100, mPointMarkers); // The bonus points scattered around the map
+        mBounds = GameScreenUtility.generateBounds(mCenter, GameScreenConstants.MAP_RADIUS);
+        GameScreenUtility.generatePoints(100, mPointMarkers, mBounds); // Generates the bonus points scattered around the map
 
         refreshMap();
         drawMap();
@@ -360,42 +354,8 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
             mMap.addCircle(new CircleOptions().center(currentLocation).fillColor(Color.BLACK)
                     .strokeColor(Color.BLUE).radius(30.0f).strokeWidth(10.0f));
 
-            mMap.setLatLngBoundsForCameraTarget(new LatLngBounds(currentLocation, currentLocation));
+            mMap.setLatLngBoundsForCameraTarget(new LatLngBounds(mCenter, mCenter));
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mBounds, 0));
         }
     }
-
-    /**
-     * Generates a set of random LatLng and stores them in the specified list.
-     * Each point will be contained within bounds specified by the mBounds field
-     */
-    private static void generatePoints(int numberOfPoints, List<LatLng> points) {
-        Random r = new Random();
-
-        LatLng northeast = mBounds.northeast;
-        LatLng southwest = mBounds.southwest;
-
-        double minLat = Math.min(northeast.latitude, southwest.latitude);
-        double maxLat = Math.max(northeast.latitude, southwest.latitude);
-        double minLng = Math.min(northeast.longitude, southwest.longitude);
-        double maxLng = Math.max(northeast.longitude, southwest.longitude);
-
-        while (--numberOfPoints >= 0) {
-            points.add(new LatLng(
-                    minLat + r.nextDouble() * (maxLat - minLat),
-                    minLng + r.nextDouble() * (maxLng - minLng)));
-        }
-    }
-
-    /**
-     * Generates bounds for the map based on the center (team leader's location)
-     */
-    private static LatLngBounds generateBounds(LatLng center, double radius) {
-        return new LatLngBounds(
-                new LatLng(center.latitude - radius,
-                        center.longitude - radius),
-                new LatLng(center.latitude + radius,
-                        center.longitude + radius));
-    }
-
 }
