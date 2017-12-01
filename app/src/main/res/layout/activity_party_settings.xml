@@ -73,6 +73,13 @@
                 android:fontFamily="casual"
                 android:text="Time Limit"/>
 
+            <EditText
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:id="@+id/TimeLimitInput"
+                android:inputType="number"/>
+
             <TextView
                 android:id="@+id/PointsPerSecondText"
                 android:layout_width="match_parent"
@@ -83,6 +90,13 @@
                 android:textStyle="bold"
                 android:fontFamily="casual"
                 android:text="Points/Second"/>
+
+            <EditText
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:id="@+id/PointsPerSecondInput"
+                android:inputType="number"/>
 
             <TextView
                 android:id="@+id/TaggedPlayersText"

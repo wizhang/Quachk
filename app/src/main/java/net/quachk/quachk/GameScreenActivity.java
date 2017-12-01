@@ -50,6 +50,7 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
 
     private ScheduledExecutorService mExecutorService = Executors.newScheduledThreadPool(1);
 
+    private static boolean handlerRun = true;
     final Handler mExecutorHandler = new Handler();
 
     private static TextView mTimeLimit;
@@ -73,6 +74,9 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
     private Runnable update = new Runnable() {
         @Override
         public void run() {
+            if(!handlerRun)
+                return;
+
             mPlayerUpdater.updatePlayer();
 
             if (App.GAME.CURRENT_PLAYER.getIsTagged() != null &&
@@ -88,9 +92,12 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
             //mPlayerUpdater.updatePlayer(); //send the player's information to the server
 
             //Update Location, Even if Location Changed wasn't fired.
+
             Location current = getLocationController().getLastBestLocation();
-            App.GAME.CURRENT_PLAYER.setLatitude(current.getLatitude());
-            App.GAME.CURRENT_PLAYER.setLongitude(current.getLongitude());
+            if(current != null) {
+                App.GAME.CURRENT_PLAYER.setLatitude(current.getLatitude());
+                App.GAME.CURRENT_PLAYER.setLongitude(current.getLongitude());
+            }
 
             drawMap(); //Update player position on the map.
 
@@ -108,10 +115,10 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
             @Override
             public void run() {
                 if(App.GAME.CURRENT_PARTY.getEndTime() != null) {
-                    if ((long) App.GAME.CURRENT_PARTY.getEndTime() - System.currentTimeMillis() <= 0) {
+                    if (new Date().after(App.GAME.CURRENT_PARTY.getEndTime())) {
                         endGame();
                     }
-                    mTimeLimit.setText(formatter.format(new Date(endTime - System.currentTimeMillis())));
+                    mTimeLimit.setText(formatter.format(App.GAME.CURRENT_PARTY.getEndTime().getTime() - System.currentTimeMillis()));
                 }
                 Log.d("Game Activity", "Update Text Views is being called!");
                 updatePoints();
@@ -159,10 +166,12 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
         super.onStart();
         mMapZoom = 0.0f;
 
+        handlerRun = true;
+
         mTimeLimit = findViewById(R.id.TimeLimitIndicator);
         if(App.GAME.CURRENT_PARTY != null && App.GAME.CURRENT_PARTY.getEndTime() != null) {
-            endTime = (long) App.GAME.CURRENT_PARTY.getEndTime();
-            mTimeLimit.setText(formatter.format(new Date(endTime - System.currentTimeMillis())));
+            endTime = App.GAME.CURRENT_PARTY.getEndTime().getTime();
+            mTimeLimit.setText(formatter.format(App.GAME.CURRENT_PARTY.getEndTime().getTime() - System.currentTimeMillis()));
         }else{
             Log.d("start game", "game is infinite (or until all players are tagged");
             mTimeLimit.setText("");
@@ -174,14 +183,15 @@ public class GameScreenActivity extends LocationActivity implements OnMapReadyCa
     @Override
     protected void onPause() {
         super.onPause();
-        mExecutorService.shutdownNow();
+        //mExecutorService.shutdownNow();
     }
 
     /** end the game and go to scores screen */
     private void endGame() {
         Intent endGame = new Intent(this, EndScreenActivity.class);
         startActivity(endGame);
-        mExecutorService.shutdownNow();
+        //mExecutorService.shutdownNow();
+        handlerRun = false;
         finish();
     }
 

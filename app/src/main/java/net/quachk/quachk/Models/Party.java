@@ -2,6 +2,10 @@ package net.quachk.quachk.Models;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * Created by Elijah on 10/18/2017.
  */
@@ -13,13 +17,13 @@ public class Party {
     private Integer partyId;
     @SerializedName("StartTime")
     @Expose
-    private Object startTime;
+    private String startTime;
     @SerializedName("GameDuration")
     @Expose
     private Integer gameDuration;
     @SerializedName("EndTime")
     @Expose
-    private Object endTime;
+    private String endTime;
     @SerializedName("TotalPoints")
     @Expose
     private Integer totalPoints;
@@ -41,11 +45,16 @@ public class Party {
         this.partyId = partyId;
     }
 
-    public Object getStartTime() {
-        return startTime;
+    public Date getStartTime() {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+        try {
+            return df.parse(startTime);
+        }catch (Exception e){
+            return null;
+        }
     }
 
-    public void setStartTime(Object startTime) {
+    public void setStartTime(String startTime) {
         this.startTime = startTime;
     }
 
@@ -57,11 +66,16 @@ public class Party {
         this.gameDuration = gameDuration;
     }
 
-    public Object getEndTime() {
-        return endTime;
+    public Date getEndTime() {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+        try {
+            return df.parse(endTime);
+        }catch (Exception e){
+            return null;
+        }
     }
 
-    public void setEndTime(Object endTime) {
+    public void setEndTime(String endTime) {
         this.endTime = endTime;
     }
 

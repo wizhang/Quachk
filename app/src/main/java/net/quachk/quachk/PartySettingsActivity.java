@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
@@ -47,6 +48,32 @@ public class PartySettingsActivity extends BaseActivity {
         });
 
         ((TextView)findViewById(R.id.PartyCode)).setText(App.GAME.CURRENT_PARTY.getPartyCode().toString());
+
+        getTimeLimitInput().setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                if(!b){
+                    App.GAME.CURRENT_PARTY.setGameDuration(Integer.getInteger(((EditText)view).getText().toString()));
+                }
+            }
+        });
+
+        getPointsPerSecondInput().setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                if(!b){
+                    App.GAME.CURRENT_PARTY.setPointSecond(Integer.getInteger(((EditText)view).getText().toString()));
+                }
+            }
+        });
+    }
+
+    private EditText getTimeLimitInput(){
+        return (EditText)findViewById(R.id.TimeLimitInput);
+    }
+
+    private EditText getPointsPerSecondInput(){
+        return (EditText)findViewById(R.id.PointsPerSecondInput);
     }
 
     private View getUpdatePartyButton(){
@@ -56,6 +83,8 @@ public class PartySettingsActivity extends BaseActivity {
     private void updateParty(){
         showLoading();
 
+        App.GAME.CURRENT_PARTY.setGameDuration(Integer.valueOf(getTimeLimitInput().getText().toString()));
+        App.GAME.CURRENT_PARTY.setPointSecond(Integer.valueOf(getPointsPerSecondInput().getText().toString()));
         PartyUpdate update = new PartyUpdate();
         update.setPlayer(App.GAME.CURRENT_PLAYER);
         update.setParty(App.GAME.CURRENT_PARTY);

@@ -98,6 +98,8 @@ public class LocationController {
     public Location getLastBestLocation(){
         Location locationGPS = null;
         Location locationNet = null;
+        if(locationManager == null)
+            return null;
         try {
             locationGPS = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             locationNet = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
