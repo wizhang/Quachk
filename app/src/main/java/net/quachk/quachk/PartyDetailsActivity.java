@@ -2,6 +2,7 @@ package net.quachk.quachk;
 
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
@@ -11,11 +12,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 
@@ -65,9 +68,10 @@ public class PartyDetailsActivity extends LocationActivity {
                 @Override
                 public void onResponse(Call<PartyStatus> call, Response<PartyStatus> response) {
                     PartyStatus partyStatus = response.body();
-                    if(partyStatus.getParty().getEndTime() != null) {
+                    if(partyStatus.getParty().getStartTime() != null) {
                         Log.d("PartyStatus", "game has started");
-                        startGame();
+                        setPlayerInitialValues();
+                        showGame();
                     } else {
                         Log.d("PartyStatus", "game has not started yet");
                     }
@@ -91,6 +95,10 @@ public class PartyDetailsActivity extends LocationActivity {
         list.setLayoutManager(new LinearLayoutManager(this));
         initListItems();
         ((TextView)findViewById(R.id.PartyCode)).setText(App.GAME.CURRENT_PARTY.getPartyCode().toString());
+
+
+        if(App.GAME.CURRENT_PARTY.getPartyLeaderId().equals(App.GAME.CURRENT_PLAYER.getPlayerId()))
+            getStartGameButton().setVisibility(View.GONE);
 
     }
 
@@ -160,6 +168,32 @@ public class PartyDetailsActivity extends LocationActivity {
 
     private void startGame() {
         setPlayerInitialValues();
+        Location l = getLocationController().getLastBestLocation();
+        App.GAME.CURRENT_PLAYER.setLatitude(l.getLatitude());
+        App.GAME.CURRENT_PLAYER.setLongitude(l.getLongitude());
+        PartyUpdate partyUpdate = new PartyUpdate();
+        partyUpdate.setPlayer(App.GAME.CURRENT_PLAYER);
+        partyUpdate.setParty(App.GAME.CURRENT_PARTY);
+
+        final Context tCtxt = this;
+        network().startGame(partyUpdate).enqueue(new Callback<Party>() {
+            @Override
+            public void onResponse(Call<Party> call, Response<Party> response) {
+                    Party p = response.body();
+                    App.GAME.CURRENT_PARTY = p;
+            }
+
+            @Override
+            public void onFailure(Call<Party> call, Throwable t) {
+                Toast message= Toast.makeText(tCtxt, R.string.start_party_failure, Toast.LENGTH_LONG);
+                message.setGravity(Gravity.TOP, 0, 0);
+                message.show();
+            }
+        });
+        showGame();
+    }
+
+    private void showGame(){
         Intent i = new Intent(this, GameScreenActivity.class);
         startActivity(i);
         finish(); // do not allow the player to return to the party screen after a game has started

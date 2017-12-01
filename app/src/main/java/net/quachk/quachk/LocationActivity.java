@@ -29,6 +29,22 @@ public class LocationActivity extends BaseActivity {
         getLocationController().destroy();
     }
 
+    @Override
+    protected void onStart(){
+        super.onStart();
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        mLocationController.requestLocationUpdates();
+    }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+    }
+
     public LocationController getLocationController(){
         return this.mLocationController;
     }

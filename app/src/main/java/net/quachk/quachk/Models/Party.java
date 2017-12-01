@@ -14,6 +14,9 @@ public class Party {
     @SerializedName("StartTime")
     @Expose
     private Object startTime;
+    @SerializedName("GameDuration")
+    @Expose
+    private Integer gameDuration;
     @SerializedName("EndTime")
     @Expose
     private Object endTime;
@@ -44,6 +47,14 @@ public class Party {
 
     public void setStartTime(Object startTime) {
         this.startTime = startTime;
+    }
+
+    public Integer getGameDuration() {
+        return gameDuration;
+    }
+
+    public void setGameDuration(Integer gameDuration) {
+        this.gameDuration = gameDuration;
     }
 
     public Object getEndTime() {

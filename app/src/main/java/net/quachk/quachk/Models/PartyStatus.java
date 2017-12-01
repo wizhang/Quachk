@@ -18,11 +18,11 @@ public class PartyStatus {
     private List<PublicPlayer> taggedPlayers;
 
     public Player getPlayer() {
-        return player;
+        return this.player;
     }
 
-    public void setPlayer(Player username) {
-        this.player = player;
+    public void setPlayer(Player p) {
+        this.player = p;
     }
 
     public Party getParty() {

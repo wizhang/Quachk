@@ -38,9 +38,20 @@ public class LocationController {
             return;
         }
 
+        buildLocationManager();
 
+        buildLocationListener();
+
+        requestLocationUpdates();
+
+        _isEnabled = true;
+    }
+
+    private void buildLocationManager(){
         locationManager = (LocationManager) this.getContext().getSystemService(Context.LOCATION_SERVICE);
+    }
 
+    private void buildLocationListener(){
         _locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
@@ -62,12 +73,16 @@ public class LocationController {
                 getActivity().onProviderDisabled(provider);
             }
         };
+    }
 
+    public void requestLocationUpdates(){
+        if(locationManager == null)
+            buildLocationManager();
+        if(_locationListener == null)
+            buildLocationListener();
         if(ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500, (float) (0.00001), _locationListener);
         }
-
-        _isEnabled = true;
     }
 
     public void destroy(){

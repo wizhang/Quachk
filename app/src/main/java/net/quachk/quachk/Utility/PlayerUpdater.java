@@ -28,6 +28,12 @@ public class PlayerUpdater extends LocationActivity
                             Log.d("PlayerUpdater", "successfully updated player information");
                             if (response.body() != null) {
                                 PartyStatus status = response.body();
+                                if(status.getPlayer() != null)
+                                    App.GAME.CURRENT_PLAYER = status.getPlayer();
+                                /*if(status.getParty() != null)
+                                    App.GAME.CURRENT_PARTY = status.getParty();
+                                if(status.getTaggedPlayers() != null)
+                                    App.GAME.TAGGED_PLAYERS = status.getTaggedPlayers();*/
                                 Log.d("PartyUpdater", "Current player score: " + App.GAME.CURRENT_PLAYER.getScore().toString());
                                 Log.d("PartyUpdater", "Current player score on the server: " + status.getPlayer().getScore().toString());
                             }

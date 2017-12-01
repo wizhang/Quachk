@@ -52,6 +52,11 @@ public class PartyOptionsActivity extends BaseActivity {
     @Override
     protected void onResume(){
         super.onResume();
+    }
+
+    @Override
+    protected void onStart(){
+        super.onStart();
         UpdatePlayerName(App.GAME.CURRENT_PLAYER.getUsername());
     }
 

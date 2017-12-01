@@ -21,7 +21,7 @@ public class PartyUpdate {
         return player;
     }
 
-    public void setPlayer(Player username) {
+    public void setPlayer(Player player) {
         this.player = player;
     }
 

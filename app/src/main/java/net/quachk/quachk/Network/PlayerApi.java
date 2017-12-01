@@ -135,4 +135,29 @@ public interface PlayerApi {
      */
     @POST("api/Party/Update")
     Call<Party> updatePartySettings(@Body PartyUpdate update);
+
+
+    /**
+     * Update the settings for the party.
+     * Note: only the party leader can update the settings
+     * @param update
+     *      The PartyUpdate object, which includes the list of tagged players, the updated party,
+     *      and the party leader.
+     * @return
+     *      The updated party.
+     */
+    @POST("api/Party/Start/Game")
+    Call<Party> startGame(@Body PartyUpdate update);
+
+    /**
+     * Update the settings for the party.
+     * Note: only the party leader can update the settings
+     * @param update
+     *      The PartyUpdate object, which includes the list of tagged players, the updated party,
+     *      and the party leader.
+     * @return
+     *      The updated party.
+     */
+    @POST("api/Party/Scan")
+    Call<PartyStatus> scanParty(@Body PartyUpdate update);
 }

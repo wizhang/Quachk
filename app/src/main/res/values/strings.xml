@@ -14,4 +14,7 @@
     <string name="start_party_text">Start A Party</string>
     <string name="join_party_text">Join Party</string>
     <string name="title_activity_maps">Map</string>
+
+    <!-- Messages Strings -->
+    <string name="start_party_failure">Failed to Start Party. Ensure you are connected to the internet and try again later.</string>
 </resources>
